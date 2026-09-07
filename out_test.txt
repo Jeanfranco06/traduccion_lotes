@@ -1,0 +1,1567 @@
+Revisión
+
+Avanzando en la atención médica con gemelos digitales: metarrevisión de
+
+aplicaciones y desafíos de implementación
+
+Mickaël Ringeval1, PhD; Faustin Armel Etindele Sosso2, DBA; Martin Cousineau1, PhD; Guy Paré1, PhD
+
+1HEC Montréal, Montréal, QC, Canadá
+2Centre Intégré Universitaire de Santé et de Services Sociaux du Nord-de-l’Île-de-Montréal, Montréal, QC, Canadá
+
+Autor de correspondencia:
+Mickaël Ringeval, PhD
+HEC Montréal
+3000 Chemin de la Côte-Sainte-Catherine
+Montréal, QC, H3T 2A7
+Canadá
+Teléfono: 1 5143406000
+Correo electrónico:
+
+Resumen
+
+Antecedentes: Los gemelos digitales (GD) son representaciones digitales de sistemas del mundo real que permiten simulaciones avanzadas, modelado predictivo y optimización en tiempo real en diversos campos, incluida la atención médica. A pesar del creciente interés, la integración de los GD en la atención médica se enfrenta a desafíos como aplicaciones fragmentadas, preocupaciones éticas y barreras para la adopción.
+
+Objetivo: Este estudio revisa sistemáticamente la literatura existente sobre las aplicaciones de los GD en la atención médica con tres objetivos: (1) mapear las aplicaciones principales, (2) identificar los desafíos y limitaciones clave, y (3) resaltar las brechas que pueden guiar futuras investigaciones.
+
+Métodos: Se realizó una metarrevisión de manera sistemática, adhiriéndose a las directrices PRISMA-ScR (Preferred Reporting Items for Systematic Reviews and Meta-Analyses extension for Scoping Reviews), e incluyó 25 revisiones de la literatura publicadas entre 2021 y 2024. La búsqueda abarcó 5 bases de datos: PubMed, CINAHL, Web of Science, Embase y PsycINFO. Se utilizó la síntesis temática para categorizar las aplicaciones de los GD, las partes interesadas y las barreras para su adopción.
+
+Resultados: Se identificó un total de 3 aplicaciones principales de los GD en la atención médica: medicina personalizada, eficiencia operativa e investigación médica. Si bien las aplicaciones actuales, como el diagnóstico predictivo, las simulaciones de tratamientos específicos para pacientes y la optimización de los recursos hospitalarios, se encuentran en sus primeras etapas de desarrollo, ponen de relieve el potencial significativo de los GD. Los desafíos incluyen la calidad de los datos, cuestiones éticas y barreras socioeconómicas. Esta revisión también identificó brechas en la escalabilidad, la interoperabilidad y la validación clínica.
+
+Conclusiones: Los GD poseen un potencial transformador en la atención médica, ya que proporcionan atención individualizada, optimización operativa e investigación acelerada. Sin embargo, su adopción se ve obstaculizada por barreras técnicas, éticas y financieras. Abordar estos problemas requiere colaboración interdisciplinaria, protocolos estandarizados y estrategias de implementación inclusivas para garantizar un acceso equitativo y un impacto significativo.
+
+(J Med Internet Res 2025;27:e69544)
+
+gemelos digitales; metarrevisión; informática de la salud; aplicaciones; desafíos; innovación en el cuidado de la salud; medicina personalizada; eficiencia operativa
+
+Introducción
+
+Los gemelos digitales (GD) son réplicas digitales de entidades, procesos o sistemas físicos que se actualizan dinámicamente con datos en tiempo real para reflejar a sus contrapartes del mundo real [1-4]. Permiten el modelado predictivo, el apoyo a la toma de decisiones y las simulaciones personalizadas en la atención médica. Los GD se presentan a menudo como modelos 3D o paneles de control; por ejemplo, un GD cardíaco puede aparecer como una simulación visual en tiempo real del corazón de un paciente. Los médicos pueden
+
+interactuar con el modelo probando diferentes escenarios de tratamiento, como ajustar las dosificaciones de los medicamentos o simular intervenciones quirúrgicas, y observar cómo se comporta el corazón, mostrando cambios en la función, el flujo sanguíneo o posibles complicaciones en tiempo real. Esta tecnología aprovecha los sensores, la analítica y el aprendizaje automático para permitir el monitoreo, la simulación y las percepciones predictivas. Caracterizados por su capacidad para adaptarse a las entradas de datos en directo, los GD facilitan la optimización en tiempo real, la evaluación
+
+de riesgos y una toma de decisiones mejorada en todas las industrias, desde la fabricación hasta la atención médica.
+
+Los GD ofrecen ventajas transformadoras sobre las herramientas tradicionales al proporcionar información en tiempo real y análisis predictivos que mejoran la eficiencia operativa y la toma de decisiones. En sectores como el aeroespacial, los GD han reducido los tiempos de desarrollo hasta en un 50% y han mejorado significativamente la calidad del producto [5]. A medida que esta tecnología avanza, se espera que el mercado global de GD crezca rápidamente, alcanzando los 110.100 millones de dólares estadounidenses para 2028, con una tasa de crecimiento anual del 60% [6]. Solo en el cuidado de la salud, el mercado se valora en 1.600 millones de dólares estadounidenses en 2023 y se proyecta que crezca hasta los 21.100 millones de dólares estadounidenses para 2028, lo que representa casi el 20% del mercado total de GD [7].
+
+Las aplicaciones de los GD en la atención médica ofrecen el potencial de simular escenarios complejos de pacientes, respaldar el diagnóstico predictivo y permitir una planificación de tratamientos personalizada y en tiempo real basada en datos de salud en directo [2]. Sin embargo, al tratarse de una nueva tecnología en el campo biomédico, la investigación sobre GD en la atención médica abarca una amplia gama de aplicaciones clínicas y operativas en diferentes etapas de desarrollo, que van desde modelos teóricos hasta etapas experimentales avanzadas. Esta diversidad —desde el modelado individualizado de pacientes hasta la optimización del flujo de trabajo hospitalario— crea un cuerpo de investigación fragmentado, donde los conceptos teóricos y los modelos experimentales varían ampliamente en sofisticación. La variabilidad en las fuentes de datos, el diseño de los modelos y los objetivos previstos limita el consenso sobre las mejores prácticas y las vías de implementación [8]. Estos factores ponen de relieve la necesidad de una revisión sistemática para sintetizar la investigación existente, trazar las diversas aplicaciones de los GD e identificar las brechas y desafíos que aún persisten.
+
+El objetivo de esta revisión es triple. En primer lugar, busca proporcionar una visión general estructurada del campo, destacando las diversas aplicaciones de los GD en la atención médica. En segundo lugar, identifica y examina las barreras para la adopción de los GD, junto con las estrategias potenciales para abordarlas. En tercer lugar, señala las brechas en el conocimiento existente para guiar futuras investigaciones. Las preguntas de investigación abordadas son las siguientes: (1) ¿Cuáles son las principales aplicaciones de los GD en la atención médica identificadas en la literatura existente? (2) ¿Cuáles son los desafíos y limitaciones clave asociados con la implementación de GD en la atención médica? (3) ¿Qué brechas existen en la investigación actual sobre GD en la atención médica y cuáles son las implicaciones para la futura investigación y práctica?
+
+del campo y una síntesis más profunda de los hallazgos existentes. Para abordar esta doble necesidad, nos inspiramos en los enfoques metodológicos de Sarrami-Foroushani et al [10], incorporando elementos de metarrevisiones exploratorias. Este enfoque híbrido nos permitió mapear sistemáticamente la literatura mientras evaluábamos todas las revisiones existentes, lo que permitió una comprensión integral del campo sin restringir nuestro análisis únicamente a las revisiones sistemáticas.
+
+Estrategia de búsqueda y criterios de selección
+
+Se realizó una búsqueda bibliográfica exhaustiva en múltiples bases de datos electrónicas sin restricciones de fecha, recuperando todos los registros disponibles hasta el 15 de mayo de 2024. Las bases de datos incluyeron PubMed, CINAHL, Web of Science, Embase y PsycINFO. La estrategia de búsqueda y la selección de bases de datos se desarrollaron en colaboración con un bibliotecario profesional, quien también ejecutó las búsquedas. El protocolo de esta revisión está registrado en Open Science Framework [11].
+
+Los términos de búsqueda clave incluyeron "digital twin", "intelligent twin" y "mirror twin" combinados con "review", "systematic review" y "meta-analysis". Para garantizar la inclusión de todos los estudios potencialmente relevantes, se revisaron manualmente las listas de referencias de los artículos seleccionados (término de bola de nieve). La estrategia de búsqueda completa para cada base de datos se proporciona en el Apéndice Multimedia 1.
+
+Establecimos los criterios de inclusión al inicio de este estudio, permitiendo posibles revisiones durante el proceso. Los artículos eran elegibles para su inclusión si cumplían con los siguientes criterios: (1) artículo de revisión de la literatura (de cualquier tipo), (2) específicamente sobre GD, (3) en el contexto de la atención médica, y (4) accesible en texto completo en inglés o francés. Si un artículo hacía referencia a aplicaciones de GD tanto en la atención médica como en otros entornos, solo se consideraban las aplicaciones relacionadas con la atención médica.
+
+Todas las referencias se organizaron y se les eliminaron los duplicados utilizando EndNote (Clarivate), mientras que Covidence (Veritas Health Innovation Ltd) se utilizó para este proceso de selección de estudios.
+
+Selección de estudios
+
+Dos revisores (MR y FAES) examinaron de manera independiente todos los títulos y resúmenes, realizándose una revisión inicial de 30 referencias para garantizar una comprensión compartida de los criterios de selección. A esto le siguió una revisión de texto completo de los estudios seleccionados para confirmar su elegibilidad.
+
+Métodos La metarrevisión arrojó inicialmente 3377 referencias. Tras
+
+Diseño del estudio
+Esta metarrevisión se realizó y se informó siguiendo las directrices PRISMA-ScR (Preferred Reporting Items for Systematic
+
+eliminar los duplicados, examinamos los títulos y resúmenes de 2921 referencias, reteniendo 65 para la revisión de texto completo. En última instancia, se incluyeron 25 referencias en esta revisión, y las razones para excluir a las demás se proporcionan en la figura de la sección de Resultados.
+
+rigor metodológico [9]. La decisión de utilizar PRISMA-ScR refleja la naturaleza emergente de la investigación sobre GD en la atención médica, lo que requiere un enfoque exploratorio para capturar la amplitud y diversidad de este campo en rápida evolución. A pesar de su estado emergente, el campo ya ha producido múltiples revisiones de la literatura, lo que indica una madurez creciente en esta línea de investigación. Esta aparente paradoja refleja el ritmo acelerado al que se genera nuevo conocimiento
+
+Dos autores (MR y FAES) extrajeron de manera independiente los datos de cada uno de los estudios incluidos. Las discrepancias se resolvieron mediante discusión. Se registraron los siguientes datos: autor, año, tipo de revisión de la literatura (según lo informado), preguntas de investigación, periodo de búsqueda, bases de datos incluidas, tamaño de la muestra final, qué modelos de GD, aplicación de GD, aplicaciones potenciales o reales, proveedor de GD, usuarios de GD, impactos de los GD, desafíos de los GD y estudio principal
+
+Se utilizó un enfoque de métodos mixtos, combinando análisis descriptivo y temático para mapear el panorama de la tecnología de GD en la atención médica. El análisis descriptivo se utilizó inicialmente para resumir las características generales de los estudios incluidos, abarcando el rango de tipos de revisión, los años de publicación y el alcance de las aplicaciones de GD.
+
+Como la mayoría de las revisiones no especificaban el tipo de revisión realizada (por ejemplo, revisión exploratoria y revisión narrativa), clasificamos todas las revisiones basándonos en criterios predefinidos [12,13]. Este proceso de clasificación fue realizado por un revisor (MR) y verificado por un segundo revisor (FAES). Cualquier discrepancia se resolvió
+
+Figura 1. Diagrama de flujo.
+
+categorización de los tipos de revisión.
+
+Resultados
+
+Características generales de las revisiones incluidas
+
+Los estudios incluidos se publicaron entre 2021 y 2024 (Figura 1). La mayoría de las revisiones se categorizaron como revisiones exploratorias (14/25, 56%) [1,2,14-25]. Las revisiones restantes incluyeron 6 revisiones narrativas (6/25, 24%) [26-31], 2 revisiones rápidas (2/25, 8%) [8,32] y 3 revisiones para las cuales no se pudo determinar un tipo (3/25, 12%; consulte el Apéndice Multimedia 2 para la lista de verificación PRISMA-ScR) [3,4,33].
+
+Poblaciones estudiadas y usuarios clave de los GD
+Poblaciones destinatarias
+Las revisiones cubren varias poblaciones, definidas como los individuos o grupos afectados por los resultados del GD
+
+28%) [1,2,14,17,22,30,31] o esclerosis múltiple (3/25, 12%) [20,24,25], lo que sugiere aplicaciones específicas de los GD en el manejo de afecciones crónicas o complejas. Por último, un pequeño subconjunto de revisiones (2/25, 8%) no especifica ninguna población para usos particulares de los GD [30,32].
+
+aplicación. Por ejemplo, un GD diseñado para la medicina 	Usuarios de los GD
+
+personalizada beneficiaría principalmente a los pacientes, ya estuvieran diagnosticados o no con una enfermedad específica.
+
+Los proveedores de atención médica son un objetivo clave en el 48% (12/25) de las
+
+Los GD son utilizados por varias partes interesadas, cada una de las cuales se beneficia de esta tecnología de manera única. Los usuarios principales incluyen pacientes [4,22-25,28,32,33], gestión hospitalaria [8,14,19,21,28-30,32],
+
+revisiones en general son el foco de otro 48% (12/25) de las revisiones [2-4,8,14,19-21,27,28,30,32], lo que subraya el amplio potencial de los GD para impactar la atención al paciente en diversos contextos. Más allá de estas categorías generales, el 32% (8/25) de las revisiones examinan a la población general [2,8,14,20,21,27-29], destacando aplicaciones de GD que se extienden a una salud pública más amplia o a beneficios sociales. Algunos estudios especifican aún más poblaciones de pacientes particulares, como aquellos con enfermedades cardiovasculares (7/25,
+
+[1,3,4,14,16,17,19,22-27,29-31,33], médicos [14,20,30,32] e investigadores [2-4,14-17,19,20,22-25,27,29-31,33].
+
+Para los pacientes, los GD proporcionan herramientas para gestionar activamente las condiciones de salud. Por ejemplo, los pacientes con migrañas [32] se benefician de sistemas de GD que integran datos de dispositivos ponibles (wearables) y registros de salud, ofreciendo un monitoreo en tiempo real y prediciendo posibles desencadenantes de migrañas. Esta capacidad capacita a los pacientes para tomar decisiones informadas sobre ajustes en el estilo de vida y adherencia
+
+al tratamiento, mejorando el control personal sobre su afección al reducir la frecuencia o la gravedad de los episodios de migraña.
+
+En la gestión hospitalaria, los GD mejoran las operaciones en cuatro funciones principales [8,14,21]. En primer lugar, mejoran la seguridad al simular escenarios de emergencia, lo que permite a los hospitales identificar riesgos y perfeccionar los protocolos de respuesta para proteger el bienestar del paciente. En segundo lugar, los GD agilizan la gestión de la información al consolidar datos en tiempo real de varias fuentes, lo que
+
+departamentos. En tercer lugar, al promover la salud y el bienestar, los GD respaldan la atención personalizada al paciente proporcionando herramientas que adaptan los protocolos de tratamiento a los datos individuales y pronostican las tendencias de salud del paciente, ayudando a los profesionales de la salud a ofrecer intervenciones personalizadas y atención preventiva. Por último, los GD garantizan un control operativo eficiente al optimizar la asignación de recursos, gestionar el flujo de pacientes y permitir el mantenimiento predictivo de los equipos, lo que reduce los tiempos de espera de los pacientes y mejora la atención hospitalaria general
+
+demandas cambiantes. Los médicos e investigadores aprovechan los GD para simular ensayos virtuales, avanzando en el desarrollo de fármacos y el perfeccionamiento de tratamientos. Estas aplicaciones corresponden a 3 áreas principales: medicina personalizada, eficiencia operativa y gestión de recursos, y avances en la investigación médica y el desarrollo de fármacos.
+
+Principales categorías de aplicaciones de los GD y beneficios potenciales
+
+Los GD han surgido como una herramienta transformadora en la atención médica, ofreciendo soluciones personalizadas en diversas aplicaciones. Las siguientes secciones presentan 3 categorías críticas de aplicaciones de GD, cada una acompañada de tablas que describen los insumos, los procesos y los resultados relevantes para cada aplicación. Estas tablas proporcionan una visión estructurada de cómo las aplicaciones concretas de GD abordan desafíos específicos de la atención médica, optimizan los recursos e impulsan los avances en la atención al paciente y la investigación médica.
+
+eficiencia. Categoría 1: Tratamiento personalizado y atención
+
+Los GD también sirven como herramientas valiosas para los profesionales de la salud, Optimización
+
+especialmente en el apoyo a la toma de decisiones clínicas y las estrategias de tratamiento personalizado. Para casos complejos como las enfermedades cardiovasculares y mediadas por el sistema inmunitario, los gemelos digitales permiten a los clínicos simular respuestas específicas de los pacientes mediante la integración de datos clínicos, genéticos y ambientales. En la atención cardiovascular [1,17,19,20,30,31], los gemelos digitales simulan la función cardíaca y la progresión de la enfermedad, respaldando intervenciones adaptadas basadas en los perfiles individuales de los pacientes. Al predecir y abordar los riesgos específicos de los pacientes en tiempo real, los gemelos digitales mejoran la precisión en la práctica médica, elevando la calidad y la personalización de
+
+Una de las principales aplicaciones de los gemelos digitales en la atención médica es el tratamiento personalizado y la optimización de la atención (Tabla 1). Los gemelos digitales abarcan varias etapas de desarrollo, desde modelos de prueba de concepto [1,8,14,17,19,20,28,30] hasta aplicaciones en investigación activa y pruebas clínicas [1,4,8,14-17,19,20,22,30-32]. Empresas como Dassault Systèmes, a través de su proyecto Living Heart [1,14,17,19,20], y Siemens [14,17,19,26] se encuentran a la vanguardia de estos avances. Otras instituciones también han desarrollado gemelos digitales específicos, como Medtronic con mapas cardíacos en 3D [14,17] y la Universidad Estatal de Oklahoma con la focalización
+
+la atención. 	ubicaciones exclusivamente tumorales [14]. Algunos estudios subrayan el potencial
+
+En suma, los gemelos digitales apoyan a distintos grupos de usuarios dentro de la atención médica. Los pacientes y los profesionales de la salud, especialmente los clínicos y médicos, se benefician de los gemelos digitales al recibir una atención precisa e individualizada. La gerencia hospitalaria depende de los gemelos digitales para mejorar la asignación de recursos, el flujo de pacientes y la adaptabilidad a
+
+de los gemelos digitales en áreas complejas [1,8,17,19,20,23,24,26,29,30,32], lo que recalca la etapa incipiente de esta innovación en el campo. Dada su relativa novedad, no sorprende que algunos artículos de revisión se centren en aplicaciones potenciales mientras que otros se concentran en implementaciones reales.
+
+Tabla 1. Aplicaciones de los gemelos digitales en el tratamiento personalizado y la optimización de la atención.
+
+optimizar planes de tratamiento personalizados, sugiriendo dosis específicas de medicamentos, ajustes dietéticos o intervenciones en el estilo de vida adaptadas a la afección y al historial médico de cada paciente
+•	Toma de decisiones en tiempo real: el gemelo digital puede alertar inmediatamente a los proveedores de atención médica sobre riesgos emergentes, como arritmias o niveles anormales de glucosa, lo que propicia intervenciones oportunas o ajustes en el tratamiento
+
+aGD: gemelo digital.
+
+El enfoque de tratamiento personalizado y optimización de la atención aborda desafíos clave en la atención médica, incluida la variabilidad en la fisiología del paciente, la detección tardía de la progresión de la enfermedad y las capacidades predictivas limitadas. Al integrar diversos aportes de datos, tales como registros clínicos, información genómica, imágenes y
+
+factores, obtenidos de sistemas de historias clínicas electrónicas (HCE), registros de enfermedades y dispositivos ponibles [1,8,14,19,20,23,32,33], los gemelos digitales permiten simulaciones integrales de los perfiles de salud de los pacientes.
+
+A través de estas simulaciones, los gemelos digitales modelan la progresión de la enfermedad, evalúan posibles opciones de tratamiento y valoran diversos escenarios clínicos, como la predicción de las respuestas de los pacientes a nuevos medicamentos o cambios en el estilo de vida [1,2,4,14,17,20,22,24,28-30,32]. Más allá de la simulación, los gemelos digitales respaldan la optimización al adaptar dinámicamente los planes de tratamiento a la condición evolutiva del paciente, lo que puede incluir el ajuste de las dosificaciones de medicamentos, la recomendación de modificaciones dietéticas o la sugerencia de cambios en el estilo de vida para mejorar los resultados [1,2,4,8,14,19,20,22-24,30,32].
+
+Además, los gemelos digitales respaldan la toma de decisiones en tiempo real al proporcionar a los proveedores de atención médica alertas sobre riesgos emergentes, como niveles anormales de glucosa [1,14,30] o arritmias [31], lo que permite
+
+intervenciones oportunas. Los resultados de esta aplicación —monitoreo en tiempo real, diagnóstico mejorado e intervenciones de salud personalizadas— subrayan el potencial de los gemelos digitales para mejorar la atención personalizada y la capacidad de respuesta en la práctica clínica.
+
+Categoría 2: Eficiencia operacional y gestión de recursos
+
+Otra categoría significativa de aplicaciones de los gemelos digitales en la atención médica se refiere a la eficiencia operacional y la gestión de recursos (Tabla 2). La tecnología de gemelos digitales sirve como una herramienta valiosa para optimizar las operaciones hospitalarias en varias etapas, desde el desarrollo del concepto [8,32] hasta el despliegue activo [4,8,14,30]. Por ejemplo, GE HealthCare ha desarrollado un centro de mando (Command Center) que aprovecha los gemelos digitales para simular y mejorar el flujo de pacientes en los hospitales, incluido el Hospital Johns Hopkins en Baltimore [8,14]. De manera similar, organizaciones como BioSecure y Siemens Healthineers han implementado soluciones basadas en gemelos digitales en entornos de atención médica [2,8] para optimizar los procesos de la cadena de suministro, mejorar los tiempos de respuesta para pacientes críticos y agilizar los flujos de trabajo. Si bien muchas iniciativas demuestran beneficios tangibles, otras permanecen en la etapa conceptual o exploratoria, lo que muestra el potencial para futuras aplicaciones de gemelos digitales en la eficiencia operacional y la gestión de recursos [21,23,32].
+
+Tabla 2. Aplicaciones de los gemelos digitales en la eficiencia operacional y la gestión de recursos.
+
+recomendar niveles ideales de personal, identificar recursos subutilizados o con exceso de reservas y programar el mantenimiento durante los períodos de baja demanda
+•	Toma de decisiones en tiempo real: el gemelo digital puede sugerir cambios en el flujo de trabajo, como desviar casos no críticos, y mejorar la planificación de altas para liberar camas de manera eficiente
+
+aGD: gemelo digital.
+
+La categoría de eficiencia operacional y gestión de recursos aborda desafíos críticos como los volúmenes impredecibles de pacientes, la dificultad de adaptar dinámicamente los flujos de trabajo en situaciones críticas y la falta de información operacional en tiempo real que a menudo genera ineficiencias y cuellos de botella. Al aprovechar entradas como los datos de los pacientes y las tendencias históricas de los sistemas de información hospitalaria [19,23], los gemelos digitales pueden simular varios escenarios hospitalarios. Estas simulaciones permiten a los administradores analizar cómo los cambios en el flujo de pacientes impactan factores clave como los tiempos de espera, la disponibilidad de camas, las necesidades de personal y el uso de equipos, proporcionando así una visión anticipada de los posibles cuellos de botella
+
+estrategias eficaces de gestión de crisis—, evidencian el significativo potencial de los gemelos digitales para mejorar el uso de recursos y la capacidad de respuesta operacional en las instalaciones de atención médica.
+
+Categoría 3: Avances en la investigación médica y el desarrollo de fármacos
+
+La tecnología de gemelos digitales posee un inmenso potencial para transformar la investigación médica y el desarrollo de fármacos a través de ensayos clínicos in silico, abarcando tanto iniciativas prospectivas [3,17,19,30] como aplicaciones actuales (Tabla 3) [2-4,14,15,17,19,30]. Por ejemplo, las colaboraciones que involucran a Unlearn AI, Merck, Nvidia y la
+
+[2,8,14,19,23]. 	Universidad de Florida [14,19] están utilizando modelos de gemelos digitales para simular
+
+Más allá de la simulación, los gemelos digitales permiten la optimización al recomendar ajustes de personal, identificar recursos subutilizados o sobrecargados y programar el mantenimiento durante los períodos de baja demanda [8,14,19,23,30,32]. Además, los gemelos digitales respaldan la toma de decisiones en tiempo real al sugerir modificaciones en el flujo de trabajo, como la reasignación de casos no críticos o la aceleración de la planificación de altas para liberar capacidad de camas [2,4,8,14,19,23]. Los resultados de esta categoría—flujo de pacientes optimizado, ajustes de personal y equipos en tiempo real, planificación de altas mejorada y
+
+las respuestas de los pacientes y diseñar ensayos clínicos virtuales. Estos esfuerzos permiten la ejecución de estudios de un solo brazo, los cuales son particularmente valiosos en escenarios donde los ensayos controlados aleatorizados tradicionales pueden ser poco éticos o poco prácticos, como en enfermedades raras o poblaciones de alto riesgo. Al simular grupos de control, los gemelos digitales ayudan a reducir la necesidad de brazos con placebo y contribuyen a minimizar las reacciones adversas a los medicamentos [14,19,30]. Otras aplicaciones de los gemelos digitales se centran en acelerar el descubrimiento de fármacos y optimizar los procesos de cribado de medicamentos, ofreciendo vías prometedoras en la investigación farmacéutica [2-4,15,17].
+
+Tabla 3. Aplicaciones de los gemelos digitales en los avances de la investigación médica y el desarrollo de fármacos.
+
+riesgos y costos asociados con los ensayos clínicos tradicionales
+•	Toma de decisiones en tiempo real: si se predicen reacciones adversas, los gemelos digitales pueden recomendar estrategias de tratamiento alternativas, mejorando la seguridad del paciente y la efectividad general del ensayo
+
+aGD: gemelo digital.
+
+Esta categoría de aplicaciones de gemelos digitales aborda desafíos críticos 	Tipos de GD
+
+en los ensayos clínicos, incluidos los elevados costos y requerimientos de tiempo de los ensayos físicos tradicionales, las preocupaciones éticas relacionadas con la realización de pruebas en participantes humanos —particularmente en poblaciones vulnerables— y la capacidad limitada para predecir las respuestas individualizadas de los pacientes. Al integrar diversos aportes de datos como información clínica, genómica, de imagen y fisiológica de fuentes tales como HCE, bases de datos de salud y datos de ensayos farmacéuticos [2,3,30], los gemelos digitales permiten la simulación de ensayos clínicos en entornos digitales.
+
+Estas simulaciones permiten a los investigadores evaluar la eficacia y seguridad de los fármacos en etapas tempranas a través de diversos perfiles de pacientes sin la necesidad de ensayos físicos a gran escala. Este enfoque reduce los costos y mejora la seguridad mediante grupos de control sintéticos [2-4,14,17,19]. Más allá de la simulación, los gemelos digitales permiten la optimización de los parámetros de los ensayos mediante el ajuste de dosificaciones, la selección de cohortes ideales de pacientes, el refinamiento de las formulaciones de los fármacos y la identificación de protocolos terapéuticos óptimos. Estas capacidades ayudan a minimizar riesgos y costos innecesarios [2-4,14,15,19].
+
+Adicionalmente, los gemelos digitales respaldan la toma de decisiones en tiempo real al predecir reacciones adversas y sugerir estrategias de tratamiento alternativas para mejorar tanto la seguridad del paciente como la
+
+La clasificación de las tecnologías de gemelos digitales se origina a partir de prácticas industriales (p. ej., [34]), donde los gemelos digitales se categorizan típicamente según la escala y el alcance de las entidades que representan. Este marco permite una distinción clara entre los gemelos digitales según su propósito y nivel de detalle, abriendo un abanico desde componentes individuales hasta sistemas más grandes y procesos enteros.
+
+Los gemelos digitales de componentes o piezas representan el nivel más granular, simulando componentes individuales dentro de sistemas más grandes. Los ejemplos incluyen funciones cardíacas específicas, como el aneurisma aórtico [19], la anatomía coronaria [31] y los vasos coronarios [17]. Adicionalmente, abarcan representaciones de perfiles cognitivos individuales [25]. Los gemelos digitales de activos o productos replican activos físicos individuales, tales como órganos o equipos médicos, para proporcionar información sobre el rendimiento y las necesidades de mantenimiento. Esta categoría incluye órganos [1,3,14,16,17,19,20,22,24,26,30,31], como el corazón [1,14,17,19,20,30,31] o el cerebro [14], así como, en menor medida, enfermedades y equipos terapéuticos [14,33]. Los gemelos digitales de sistemas o unidades se enfocan en las interacciones de múltiples componentes dentro de un sistema. Los ejemplos incluyen modelos del cuerpo humano (IDs 4, 21, 22 y 25), pacientes en varios estados de salud
+
+aplicaciones —incluidos grupos de control sintéticos, modelado predictivo de respuestas a medicamentos y ensayos virtualizados específicos para cada paciente— demuestran cómo los gemelos digitales pueden mejorar significativamente la eficiencia, la precisión y la personalización de los ensayos clínicos, haciéndolos más adaptables a las necesidades de diversas poblaciones de pacientes.
+
+sistemas [8,14]. Por último, los gemelos digitales de procesos simulan flujos de trabajo enteros para optimizar las operaciones de atención médica. Estos incluyen modelos de infraestructura más amplios como edificios [29], sistemas de atención médica [8], hospitales [8,19] y sistemas físicos [23].
+
+Desafíos en la implementación de gemelos digitales
+
+La implementación de la tecnología de gemelos digitales en las organizaciones de salud enfrenta varios desafíos críticos, los cuales pueden
+
+agruparse en 3 categorías principales: integridad de datos y modelos; desafíos éticos, regulatorios y de gobernanza; e implementación y disparidades socioeconómicas.
+
+En primer lugar, la integridad de datos y modelos abarca cuestiones relacionadas con la calidad de los datos, la disponibilidad y la robustez de los modelos de gemelos digitales. El acceso limitado a datos de alta calidad, las dificultades en la integración de datos y las preocupaciones sobre la privacidad representan barreras significativas para su adopción. Adicionalmente, las demandas de potencia computacional y los desafíos de escalabilidad complican aún más la implementación [1,2,4,8,14-21,23,24,26,27,29,32,33]. Garantizar la validación y reproducibilidad del modelo sigue siendo un problema apremiante, ya que la ausencia de métodos estandarizados y de ensayos controlados aleatorizados socava la credibilidad clínica de los gemelos digitales. Además, la necesidad de mejorar la complejidad del modelo para capturar mejor las variaciones individuales de los pacientes pone de relieve las limitaciones tecnológicas actuales de los gemelos digitales [3,16,19,22,26,28,31].
+
+En segundo lugar, los desafíos éticos, regulatorios y de gobernanza abordan las consideraciones éticas y los marcos regulatorios que rodean el uso de los gemelos digitales. Las preocupaciones persistentes sobre el sesgo, la equidad y la propiedad de los datos destacan el riesgo de exacerbar las disparidades socioeconómicas existentes. Surgen dilemas éticos con respecto al consentimiento informado y la propiedad de los datos, particularmente en
+
+planes de tratamiento optimizados, particularmente en dominios complejos como la atención cardiovascular y las enfermedades mediadas por el sistema inmunitario. Sin embargo, muchas aplicaciones permanecen en la etapa de prueba de concepto, lo que recalca la necesidad de más investigación, estandarización de datos y esfuerzos de validación para transicionar desde la experimentación hacia la adopción clínica generalizada.
+
+Los gemelos digitales mejoran las operaciones de atención médica mediante la simulación del flujo de pacientes, la asignación de recursos y los escenarios de emergencia, ofreciendo información procesable para mejorar la eficiencia. Por ejemplo, el centro de mando (Command Center) de GE HealthCare demuestra cómo los gemelos digitales pueden reducir los cuellos de botella, optimizar el personal y mejorar las experiencias de los pacientes [13]. Sin embargo, la adopción sigue siendo limitada debido a la resistencia al cambio, las importantes demandas computacionales y los desafíos para integrar los gemelos digitales en los flujos de trabajo existentes. Superar estas barreras requerirá capacitación específica y colaboración interdisciplinaria para facilitar la implementación operacional de los gemelos digitales.
+
+Los gemelos digitales están transformando la investigación médica al facilitar los ensayos clínicos digitales y el modelado predictivo de las respuestas a los medicamentos. Estas innovaciones pueden reducir significativamente el costo y las preocupaciones éticas asociadas con los ensayos tradicionales, al tiempo que mejoran la eficiencia y la seguridad de los ensayos. Por ejemplo, las colaboraciones entre
+
+el contexto 	del 	intercambio 	de 	datos 	y 	el 	posible 	mal 	uso 	Unlearn AI y Merck están aprovechando grupos de control sintéticos
+
+[2,4,8,14,16,17,19,20,24,29]. 	Además, 	los 	marcos 	regulatorios 	para acelerar el desarrollo de fármacos [18]. Sin embargo, una mayor
+
+para los gemelos digitales permanecen poco desarrollados, lo que genera incertidumbres en la gobernanza legal, la protección de la propiedad intelectual y la alineación con las regulaciones de salud existentes
+
+implementación en este dominio está supeditada a abordar desafíos críticos, que incluyen garantizar la calidad de los datos, lograr la escalabilidad y navegar por los procesos de aprobación regulatoria.
+
+En tercer lugar, la implementación y las disparidades socioeconómicas abordan los desafíos de integrar los gemelos digitales (DT, por sus siglas en inglés) en la práctica clínica y las barreras socioeconómicas para su adopción generalizada. Los profesionales de la salud a menudo expresan preocupaciones sobre la confianza, la transparencia y el riesgo de desplazamiento laboral, lo que contribuye a la resistencia contra la implementación de los DT. Además, existe una necesidad urgente de mejorar la educación y la formación tanto para los proveedores de atención médica como para los pacientes para cerrar la brecha de conocimiento entre los médicos y los científicos de datos [4,14,16,17,23,30,32]. A una escala más amplia, los impactos socioeconómicos de los DT incluyen el potencial de profundizar la brecha digital, limitar el acceso a tecnologías avanzadas y generar barreras financieras como problemas de costos y reembolso, lo que obstaculiza una implementación más amplia
+
+Tecnología en la atención médica
+
+Resumen general
+
+Si bien nuestros hallazgos destacan la gran promesa de los DT en la atención médica, también revelan que la mayoría de las aplicaciones actuales siguen en su infancia, y muchas aún se encuentran en la etapa de prueba de concepto o de implementación temprana. Estas implementaciones iniciales, aunque de alcance limitado, demuestran resultados prometedores y sientan una base sólida para futuros avances. Las aplicaciones potenciales de los DT se extienden mucho más allá de estos primeros esfuerzos, ofreciendo soluciones innovadoras para abordar algunos de los desafíos más apremiantes de la atención médica. Sin embargo, superar las barreras clave es fundamental para hacer que la tecnología de los DT sea más accesible, confiable,
+
+[1,18-20]. 	y práctica para los proveedores de atención médica, allanando así el camino
+
+Discusión
+
+Resultados principales
+
+Esta revisión destaca el potencial transformador de la tecnología de los DT en 3 aplicaciones críticas en la atención médica: medicina personalizada, eficiencia operativa e investigación médica y desarrollo de fármacos. Si bien estos avances presentan oportunidades significativas, también introducen desafíos que requieren atención para realizar plenamente los beneficios de los DT.
+
+En la atención personalizada, los DT aprovechan diversas fuentes de datos —como registros clínicos, información genómica y aportes en tiempo real de dispositivos ponibles (wearables)— para crear simulaciones de salud específicas para cada paciente. Estas simulaciones sirven como base para la modelización predictiva, lo que permite intervenciones personalizadas y
+
+para una adopción más amplia y un impacto significativo.
+
+Primero, los desafíos relacionados con la integridad de los datos y de los modelos representan una preocupación importante para la tecnología de los DT en la atención médica. La integración de grandes conjuntos de datos procedentes de dispositivos ponibles, historias clínicas electrónicas (HCE) y sistemas de imagenología implica complejidades en la estandarización, el control de calidad y la sincronización en tiempo real [35]. Garantizar la precisión del modelo y minimizar los sesgos de la inteligencia artificial, como tecnología clave que respalda los DT, son aspectos críticos para hacer que los DT sean confiables en aplicaciones de atención médica de alto riesgo [36]. Abordar estos problemas requiere marcos estandarizados y protocolos de validación rigurosos. Los marcos legales como el Reglamento General de Protección de Datos de la Unión Europea podrían servir como modelo para implementar prácticas sólidas de gobernanza de datos dentro de la tecnología de los DT. Para minimizar los sesgos de la inteligencia artificial, se pueden aprovechar las prácticas validadas establecidas en las HCE para mejorar los datos
+
+procesos de validación transparentes, similares a los ensayos clínicos para dispositivos médicos, fomentarían la confianza y garantizarían la fiabilidad de los DT en
+
+la implementación. Las investigaciones futuras deben priorizar la refinanciación y la estandarización de las definiciones de los DT para fomentar la alineación entre
+
+los entornos clínicos. 	la investigación y las necesidades del mundo real, permitiendo la confianza entre
+
+A continuación, los desafíos éticos, regulatorios y de gobernanza presentan preocupaciones significativas, en particular debido a que los DT dependen de datos de salud sensibles. Es necesario abordar cuestiones como la privacidad de los datos, la propiedad y el potencial de sesgo algorítmico para evitar socavar la confianza pública y exacerbar las disparidades en la atención [37]. La adaptación de marcos regulatorios de la realidad virtual y los dispositivos del internet de las cosas podría establecer estándares para la propiedad de los datos, el consentimiento informado y la transparencia, mitigando así los riesgos de uso no autorizado de datos. Además, alinear estos estándares con las directrices éticas internacionales podría mejorar la confianza pública en la tecnología de los DT. El establecimiento de organizaciones de monitoreo independientes —como la Agencia Europea de Medicamentos [38] o la ICANN (Corporación de Internet para la Asignación de Nombres y Números) [39]— podría proporcionar una supervisión y una rendición de cuentas consistentes. Tales organizaciones jugarían un papel fundamental para garantizar el despliegue ético y responsable de los DT en todos los sistemas de salud.
+
+Finalmente, las barreras socioeconómicas para la implementación de los DT plantean preocupaciones sobre la exacerbación de las disparidades existentes en la atención médica [40]. Los altos costos de las tecnologías avanzadas crean obstáculos sustanciales para que los países de ingresos bajos y medianos accedan a las herramientas esenciales necesarias para la innovación en salud y la modernización económica [41]. Además, la monopolización de patentes
+
+las partes interesadas y allanando el camino para soluciones de atención médica innovadoras y específicas.
+
+Las investigaciones futuras deben priorizar la implementación práctica de los DT mediante estudios de caso detallados y aplicaciones del mundo real, demostrando su viabilidad e impacto clínico. La transparencia y la explicabilidad son igualmente fundamentales para generar la confianza de los médicos en las recomendaciones de los DT y garantizar que puedan interpretar eficazmente estas perspectivas. Abordar los desafíos relacionados con la escalabilidad y la estandarización de datos es esencial para la adopción generalizada, junto con una validación rigurosa a través de ensayos clínicos del mundo real para establecer la precisión, la seguridad y la integración fluida de los sistemas de DT en las infraestructuras de atención médica.
+
+Las consideraciones éticas, incluidos los sesgos de la inteligencia artificial y la privacidad del paciente, requieren enfoques innovadores para el desarrollo de algoritmos y el refinamiento de los modelos de propiedad de datos y consentimiento informado. Además, la investigación sobre los impactos socioeconómicos de los DT y las estrategias de implementación rentables es vital para garantizar la accesibilidad a las poblaciones desatendidas. Se debe prestar especial atención a los entornos de bajos recursos, donde barreras como el costo, la infraestructura y la capacitación pueden dificultar la adopción. La colaboración entre los sectores privado y gubernamental puede garantizar que la tecnología de los DT beneficie a una amplia gama de pacientes e instituciones, allanando el camino hacia una atención equitativa y sostenible
+
+el pago de la deuda en lugar de inversiones estratégicas en infraestructura de atención médica, perpetuando aún más la desigualdad y ampliando la brecha digital. Las lecciones aprendidas de la implementación de las HCE y los dispositivos médicos conectados muestran que los modelos de costos compartidos y las iniciativas de financiación colaborativa pueden promover un acceso más equitativo a la tecnología de los DT [43]. Las herramientas de código abierto y las asociaciones público-privadas que involucran a empresas de tecnología, proveedores de atención médica e instituciones de investigación ofrecen vías adicionales para reducir los costos y mejorar la accesibilidad. Asimismo, los programas de capacitación específicos para profesionales de la salud pueden cerrar la brecha de habilidades, facilitando la adopción exitosa de los DT en diversos entornos de atención médica [44,45].
+
+Direcciones futuras para la tecnología de los DT en la atención médica
+
+La expansión de la tecnología de los DT en la atención médica abre varias vías importantes para la investigación futura. Un desafío clave es la falta de una definición universalmente aceptada, particularmente en la atención médica. Si bien la mayoría de los estudios definen el término de manera consistente, persiste cierta variabilidad, lo que refleja inconsistencias más amplias en el campo. Esta falta de consenso complica los esfuerzos para sintetizar los hallazgos y evaluar la madurez de las aplicaciones de los DT. Las definiciones reconocidas, como las de las Academias Nacionales [46] y Drummond y Gonsard [47], enfatizan los atributos dinámicos, predictivos y de apoyo a la decisión que distinguen a los DT de otras herramientas digitales, lo cual los aparta de otras herramientas digitales.
+
+Esta revisión tiene limitaciones que pueden afectar la interpretación de sus hallazgos. Como metarrevisión, nuestro análisis está limitado por el alcance y la profundidad de los estudios incluidos, los cuales pueden no capturar de manera integral todos los aspectos de las aplicaciones y desarrollos de los DT en la atención médica. Además, el rápido crecimiento de la investigación sobre los DT en la atención médica, particularmente con contribuciones significativas de la industria privada, limita la visibilidad de los esfuerzos actuales de implementación. Las partes interesadas de la industria a menudo dudan en publicar información detallada sobre sus tecnologías y metodologías propietarias de DT, un desafío que también se observó durante la pandemia de COVID-19 [48]. Esto restringe el acceso a los datos del mundo real, reduciendo las perspectivas que podrían profundizar nuestra comprensión de los avances de los DT.
+
+Conclusiones
+
+Aunque todavía se encuentran en aplicaciones de etapa temprana, los DT tienen un inmenso potencial para revolucionar la atención médica a través de la medicina personalizada, la eficiencia operativa y la investigación médica acelerada. Sin embargo, realizar este potencial requiere abordar desafíos clave relacionados con la integridad de los datos, las preocupaciones éticas y las disparidades socioeconómicas. Las inversiones estratégicas, las políticas de apoyo y las iniciativas de investigación colaborativa son cruciales para garantizar un desarrollo equitativo. Con un enfoque inclusivo, los DT pueden pasar de ser un concepto visionario a una herramienta práctica y transformadora que mejore los resultados de salud para
+
+Lograr claridad en las definiciones es fundamental para avanzar en 	poblaciones diversas.
+
+las aplicaciones prácticas, ya que las definiciones inconsistentes corren el riesgo de
+
+Agradecimientos
+
+Los autores desean agradecer a Jean Charbonneau, bibliotecario de la MLIS del Servicio Documental del Centro Integrado Universitario de Salud y Servicios Sociales del Norte de la Isla de Montreal, quien validó las palabras clave iniciales y los términos de los Encabezados de Materias Médicas (MeSH) de las consultas de búsqueda y luego ejecutó la estrategia de búsqueda en las bases de datos seleccionadas.
+
+Contribuciones de los autores
+
+MR conceptualizó este estudio, preparó el protocolo de este estudio, realizó la codificación, redactó el documento inicial y contribuyó a su revisión y edición. FAES conceptualizó este estudio, participó en la codificación, y revisó y editó este documento. GP conceptualizó y supervisó este estudio y contribuyó a la revisión y edición de este documento. MC conceptualizó este estudio y revisó y editó este documento. MR y FAES accedieron y verificaron los datos. Todos los autores tuvieron acceso completo a los datos de este estudio, incluido el material suplementario, y aprobaron la versión final de este documento para su presentación.
+
+Conflictos de intereses
+
+Ninguno declarado.
+
+Apéndice multimedia 1
+
+Consultas de investigación.
+
+[-]
+
+Apéndice multimedia 2
+
+Lista de verificación PRISMA-ScR.
+
+[-]
+
+References
+
+1. 	Chu Y, Li S, Tang J, Wu H. The potential of the medical digital twin in diabetes management: a review. Front Med 	(Lausanne). 2023;10:1178912. [
+2. 	Katsoulakis E, Wang Q, Wu H, Shahriyari L, Fletcher R, Liu J, et al. Digital twins for health: a scoping review. NPJ Digit 	Med. 2024;7(1):77. [
+3. 	Moingeon P, Chenel M, Rousseau C, Voisin E, Guedj M. Virtual patients, digital twins and causal disease models: paving 	the ground for in silico clinical trials. Drug Discov Today. 2023;28(7):103605. [
+4. 	Venkatesh KP, Brito G, Boulos MNK. Health digital twins in life science and health care innovation. Annu Rev Pharmacol 	Toxicol. 2024;64(1):159-170. [ 5. 	Digital twins: the key to smart product development. McKinsey & Company. URL: 	 [accessed 2025-02-04] 6. 	Research and Markets. URL:
+[accessed 2025-02-04]
+7. 	MarketsandMarkets. URL:
+[accessed 2025-02-04]
+8. 	Elkefi S, Asan O. Digital twins for managing health care systems: rapid literature review. J Med Internet Res.
+
+2022;24(8):e37641. [
+9. 	Tricco AC, Lillie E, Zarin W, O'Brien KK, Colquhoun H, Levac D, et al. PRISMA Extension for Scoping Reviews 	(PRISMA-ScR): checklist and explanation. Ann Intern Med. 2018;169(7):467-473. [
+10. 	Sarrami-Foroushani P, Travaglia J, Debono D, Clay-Williams R, Braithwaite J. Scoping meta-review: introducing a new 	methodology. Clin Transl Sci. 2015;8(1):77-81. [ 11. 	van den Akker O, Peters G-J, Bakker C. Generalized Systematic Review Registration Form. MetaArXiv. Preprint posted 	online on September 22, 2023.
+12. 	Paré G, Wagner G, Prester J. How to develop and frame impactful review articles: key recommendations. J Decis Syst.
+
+2023;33(4):566-582. [
+13. 	Paré G, Kitsiou S. Handbook of eHealth evaluation: an evidence-based approach [internet]. University of Victoria. URL: 	 [accessed 2025-02-04]
+14. 	Armeni P, Polat I, De Rossi LM, Diaferia L, Meregalli S, Gatti A. Digital twins in healthcare: is it the beginning of a new 	era of evidence-based medicine? A critical review. J Pers Med. 2022;12(8):1255. [
+
+fibrillation. Front Physiol. 2022;13:957604. [ 16. 	Benson M. Digital twins for predictive, preventive personalized, and participatory treatment of immune-mediated diseases.
+
+ATVB. 2023;43(3):410-416. [
+17. 	Coorey G, Figtree GA, Fletcher DF, Snelson VJ, Vernon ST, Winlaw D, et al. The health digital twin to tackle cardiovascular 	disease-a review of an emerging interdisciplinary field. NPJ Digit Med. 2022;5(1):126. [
+18. 	Drummond D, Roukema J, Pijnenburg M. Home monitoring in asthma: towards digital twins. Curr Opin Pulm Med.
+
+2023;29(4):270-276. [
+19. 	Dumas M, Fay AF, Charpentier E, Matricon J. [Digital twins in healthcare: state of the art and potential use cases in a 	hospital setting]. Med Sci (Paris). 2023;39(12):953-957. [
+20. 	Boulos MNK, Zhang P. Digital twins: from personalised medicine to precision public health. J Pers Med. 2021;11(8):745.
+
+[
+21. 	Khan A, Milne-Ives M, Meinert E, Iyawa GE, Jones RB, Josephraj AN. A scoping review of digital twins in the context 	of the COVID-19 pandemic. Biomed Eng Comput Biol. 2022;13:11795972221102115. [
+22. 	Sun T, He X, Li Z. Digital twin in healthcare: recent updates and challenges. Digit Health. 2023;9:20552076221149651.
+
+[
+23. 	Vallée A. Digital twin for healthcare systems. Front Digit Health. 2023;5:1253050. [
+24. 	Voigt I, Inojosa H, Dillenseger A, Haase R, Akgün K, Ziemssen T. Digital twins for multiple sclerosis. Front Immunol.
+
+2021;12:669811. [
+25. 	Tacchino A, Podda J, Bergamaschi V, Pedullà L, Brichetto G. Cognitive rehabilitation in multiple sclerosis: three digital 	ingredients to address current and future priorities. Front Hum Neurosci. 2023;17:1130231. [
+26. 	Wu C, Lorenzo G, Hormuth DA, Lima EABF, Slavkova KP, DiCarlo JC, et al. Integrating mechanism-based modeling 	with biomedical imaging to build practical digital twins for clinical oncology. Biophys Rev (Melville). 2022;3(2):021304.
+
+[
+27. 	Meijer C, Uh HW, El Bouhaddani S. Digital twins in healthcare: methodological challenges and opportunities. J Pers Med.
+
+2023;13(10):1522. [
+28. 	Laubenbacher R, Adler F, An G, Castiglione F, Eubank S, Fonseca LL, et al. Toward mechanistic medical digital twins: 	some use cases in immunology. Front Digit Health. 2024;6:1349595. [
+29. 	Jia P, Liu S, Yang S. Innovations in public health surveillance for emerging infections. Annu Rev Public Health.
+
+2023;44(1):55-74. [ 30. 	Fischer R, Volpert A, Antonino P, Ahrens TD. Digital patient twins for personalized therapeutics and pharmaceutical 	manufacturing. Front Digit Health. 2023;5:1302338. [
+31. 	Cluitmans MJM, Plank G, Heijman J. Digital twins for cardiac electrophysiology: state of the art and future challenges.
+
+Herzschrittmacherther Elektrophysiol. 2024;35(2):118-123. [
+32. 	Gazerani P. Intelligent digital twins for personalized migraine care. J Pers Med. 2023;13(8):1255. [
+33. 	Sigawi T, Ilan Y. Using constrained-disorder principle-based systems to improve the performance of digital twins in 	biological systems. Biomimetics (Basel). 2023;8(4):359. [
+34. 	What is a digital twin? IBM. URL: [accessed 2025-02-04] 35. 	Martínez-García M, Hernández-Lemus E. Data integration challenges for machine learning in precision medicine. Front 	Med (Lausanne). 2021;8:784455. [
+36. 	Putrama IM, Martinek P. Heterogeneous data integration: challenges and opportunities. Data Brief. 2024;56:110853. [
+37. 	Alhammad N, Alajlani M, Abd-Alrazaq A, Epiphaniou G, Arvanitis T. Patients' perspectives on the data confidentiality, 	privacy, and security of mHealth apps: systematic review. J Med Internet Res. 2024;26:e50715. [
+38. 	What we do. European Medicines Agency. URL: [accessed 2025-02-04] 39.
+ICANN for Beginners. Internet Corporation for Assigned Names and Numbers. URL: 	[accessed 2025-02-04]
+
+(LMIC) in the research literature: ethical issues arising from a survey of five leading medical journals: have the trends 	changed? Glob Public Health. 2023;18(1):2229890. [
+41. 	Dinh MN, Nygate J, Tu VHM, Thwaites CL, Global Grand Challenges Event Vietnam Group. New technologies to improve 	healthcare in low- and middle-income countries: Global Grand Challenges satellite event, Oxford University Clinical 	Research Unit, Ho Chi Minh City, 17th-18th September 2019. Wellcome Open Res. 2020;5:142. [
+42. 	Sachs JD, Karim SSA, Aknin L, Allen J, Brosbøl K, Colombo F, et al. The Lancet commission on lessons for the future 	from the COVID-19 pandemic. Lancet. 2022;400(10359):1224-1280. [ 43. 	Tsai CH, Eghdam A, Davoody N, Wright G, Flowerday S, Koch S. Effects of electronic health record implementation and 	barriers to adoption and use: a scoping review and qualitative analysis of the content. Life (Basel). 2020;10(12):327. [
+44.
+Franzen SRP, Chandler C, Lang T. Health research capacity development in low and middle income countries: reality or 	rhetoric? A systematic meta-narrative review of the qualitative literature. BMJ Open. 2017;7(1):e012332. 	[
+45. 	Shumba CS, Lusambili AM. Not enough traction: barriers that aspiring researchers from low- and middle-income countries 	face in global health research. Journal of Global Health Economics and Policy. 2021;1:e2021002. [ 46. 	Foundational Research Gaps and Future Directions for Digital Twins. National Academies. Washington DC. National 	Academies Press; 2024. URL: [accessed 2025-02-04] 47. 	Drummond D, Gonsard A. Definitions and characteristics of patient digital twins being developed for clinical use: scoping 	review. J Med Internet Res. 2024;26:e58504. [
+48. 	Wouters OJ, Shadlen KC, Salcher-Konrad M, Pollard AJ, Larson HJ, Teerawattananon Y, et al. Challenges in ensuring 	global access to COVID-19 vaccines: production, affordability, allocation, and deployment. Lancet.
+
+2021;397(10278):1023-1034. [
+
+Abbreviations
+
+DT: digital twin
+EHR: electronic health record
+ICANN: Internet Corporation for Assigned Names and Numbers
+PRISMA-ScR: Preferred Reporting Items for Systematic Reviews and Meta-Analyses extension for Scoping Reviews
+
+©Mickaël Ringeval, Faustin Armel Etindele Sosso, Martin Cousineau, Guy Paré. Originally published in the Journal of Medical Internet Research ( 19.02.2025. This is an open-access article distributed under the terms of the Creative Commons Attribution License ( which permits unrestricted use, distribution, and reproduction in any medium, provided the original work, first published in the Journal of Medical Internet Research (ISSN 1438-8871), is properly cited. The complete bibliographic information, a link to the original publication on as well as this copyright and license information must be included.
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Reviews and Meta-Analyses extension for Scoping Reviews)
+
+Data Extraction
+
+guidelines
+
+to
+
+ensure
+
+comprehensive
+
+reporting
+
+and
+
+Data Extraction
+
+generated in DT research, necessitating both a broad mapping
+
+results.
+
+results.
+
+results.
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+Data Analysis
+
+Ringeval et al through discussion, ensuring a consistent and accurate
+
+reviews [2,8,19-23,25,29,30,32,33]. Similarly, patients in
+
+and
+
+health
+
+care
+
+professionals,
+
+including
+
+clinicians
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+improves
+
+communication
+
+and
+
+decision-making
+
+across
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+Problem (and root causes)
+
+Problem (and root causes)
+
+Inputs
+
+Inputs
+
+Inputs
+
+Processes
+
+Processes
+
+Outputs
+
+Outputs
+
+•
+
+Variability in patient
+
+•
+
+Data:
+
+Data:
+
+•
+
+Simulation: the DT can simu-
+
+•
+
+Real-time monitoring and
+
+physiology
+
+physiology
+
+•
+
+•
+
+Clinical data
+
+late a patient’s disease prolate a patient’s disease proprognosis
+
+prognosis
+
+•
+
+Delayed detection
+
+•
+
+•
+
+Genomic data
+
+gression, the impact of treatgression, the impact of treat-
+
+•
+
+Improved diagnosis
+
+•
+
+Limited predictive capa-
+
+•
+
+•
+
+Imaging data
+
+ment options, and various
+
+ment options, and various
+
+•
+
+Tailored health intervenbility for disease progresbility for disease progres-
+
+•
+
+•
+
+Biomarkers
+
+clinical scenarios, such as a
+
+clinical scenarios, such as a
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Lifestyle data
+
+sudden deterioration in condisudden deterioration in conditions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Demographic data
+
+tion or the patient’s response
+
+tion or the patient’s response
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Demographic data
+
+to a new medication. It can
+
+to a new medication. It can
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+Sources:
+
+Sources:
+
+to a new medication. It can
+
+to a new medication. It can
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+Sources:
+
+Sources:
+
+also model the effects of daialso model the effects of daitions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Electronic health record systems
+
+also model the effects of daialso model the effects of daitions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Electronic health record systems
+
+ly changes in lifestyle, nutrily changes in lifestyle, nutritions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Disease registries
+
+ly changes in lifestyle, nutrily changes in lifestyle, nutritions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Disease registries
+
+tion, and medication adhertion, and medication adhertions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Laboratory reports
+
+tion, and medication adhertion, and medication adhertions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Laboratory reports
+
+ence
+
+ence
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Wearable devices
+
+ence
+
+ence
+
+tions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Wearable devices
+
+•
+
+Optimization: based on simutions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Surveys and questionnaires
+
+•
+
+Optimization: based on simutions and lifestyle guidance
+
+tions and lifestyle guidance
+
+sion
+
+sion
+
+•
+
+•
+
+Surveys and questionnaires
+
+lation results, the DT can oplation results, the DT can options and lifestyle guidance
+
+tions and lifestyle guidance
+
+data,
+
+biomarkers,
+
+and
+
+lifestyle
+
+and
+
+demographic
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+Problem (and root causes)
+
+Problem (and root causes)
+
+Inputs
+
+Inputs
+
+Inputs
+
+Processes
+
+Processes
+
+Outputs
+
+Outputs
+
+•
+
+Unpredictable patient vol-
+
+•
+
+Data:
+
+Data:
+
+•
+
+Simulation: the DT can simu-
+
+•
+
+Optimized patient flow and
+
+umes
+
+umes
+
+•
+
+•
+
+Patient data
+
+late hospital scenarios. By
+
+late hospital scenarios. By
+
+resource
+
+resource
+
+•
+
+Difficulty in dynamically
+
+•
+
+•
+
+Historical trends
+
+modeling these patterns, DTs
+
+modeling these patterns, DTs
+
+•
+
+Real-time adjustments in
+
+adapting workflows in highadapting workflows in high-
+
+•
+
+•
+
+Historical trends
+
+can analyze how variations
+
+can analyze how variations
+
+staffing and equipment usstaffing and equipment usadapting workflows in highadapting workflows in high-
+
+•
+
+Sources:
+
+Sources:
+
+can analyze how variations
+
+can analyze how variations
+
+staffing and equipment usstaffing and equipment usstakes situations
+
+stakes situations
+
+•
+
+Sources:
+
+Sources:
+
+in patient flow affect wait
+
+in patient flow affect wait
+
+age based on patient arrivals
+
+age based on patient arrivals
+
+stakes situations
+
+stakes situations
+
+•
+
+•
+
+Hospital information systems
+
+in patient flow affect wait
+
+in patient flow affect wait
+
+age based on patient arrivals
+
+age based on patient arrivals
+
+•
+
+Limited real-time operational
+
+•
+
+•
+
+Hospital information systems
+
+times, bed availability,
+
+times, bed availability,
+
+•
+
+Improved discharge planinsights that lead to inefficieninsights that lead to inefficien-
+
+•
+
+•
+
+Hospital information systems
+
+staffing requirements, and
+
+staffing requirements, and
+
+ning and maintenance
+
+ning and maintenance
+
+cies and bottlenecks
+
+cies and bottlenecks
+
+•
+
+•
+
+Hospital information systems
+
+equipment usage, giving adequipment usage, giving adscheduling to ensure optischeduling to ensure opticies and bottlenecks
+
+cies and bottlenecks
+
+•
+
+•
+
+Hospital information systems
+
+ministrators foresight into
+
+ministrators foresight into
+
+mal bed availability and pamal bed availability and pacies and bottlenecks
+
+cies and bottlenecks
+
+•
+
+•
+
+Hospital information systems
+
+potential bottlenecks
+
+potential bottlenecks
+
+tient throughput
+
+tient throughput
+
+cies and bottlenecks
+
+cies and bottlenecks
+
+•
+
+•
+
+Hospital information systems
+
+•
+
+Optimization: based on simu-
+
+•
+
+Efficient crisis management
+
+cies and bottlenecks
+
+cies and bottlenecks
+
+•
+
+•
+
+Hospital information systems
+
+lation results, the DT can
+
+lation results, the DT can
+
+strategies
+
+strategies
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+Problem (and root causes)
+
+Problem (and root causes)
+
+Inputs
+
+Inputs
+
+Inputs
+
+Processes
+
+Processes
+
+Outputs
+
+Outputs
+
+•
+
+High costs and time demand
+
+•
+
+Data:
+
+Data:
+
+•
+
+Simulation: the DTs are
+
+•
+
+Synthetic control groups
+
+of physical trials
+
+of physical trials
+
+•
+
+•
+
+Clinical data
+
+used to simulate in silico
+
+used to simulate in silico
+
+to minimize physical trito minimize physical tri-
+
+•
+
+Ethical challenges in testing
+
+•
+
+•
+
+Patient data
+
+clinical trials, allowing reclinical trials, allowing reals and enhance safety
+
+als and enhance safety
+
+on human participants, espeon human participants, espe-
+
+•
+
+•
+
+Genomic data
+
+searchers to predict drug
+
+searchers to predict drug
+
+•
+
+Predictive modeling of
+
+cially in vulnerable populacially in vulnerable popula-
+
+•
+
+•
+
+Imaging data
+
+efficacy and safety across
+
+efficacy and safety across
+
+drug responses and addrug responses and adtions
+
+tions
+
+•
+
+•
+
+Physiological data
+
+diverse patient profiles
+
+diverse patient profiles
+
+verse reactions, allowing
+
+verse reactions, allowing
+
+•
+
+Limited ability to predict
+
+•
+
+•
+
+Physiological data
+
+without the need for largewithout the need for largefor more accurate and
+
+for more accurate and
+
+•
+
+Limited ability to predict
+
+•
+
+Sources:
+
+Sources:
+
+without the need for largewithout the need for largefor more accurate and
+
+for more accurate and
+
+individualized responses in
+
+individualized responses in
+
+•
+
+Sources:
+
+Sources:
+
+scale physical trials
+
+scale physical trials
+
+efficient trials
+
+efficient trials
+
+individualized responses in
+
+individualized responses in
+
+•
+
+•
+
+Electronic health records
+
+scale physical trials
+
+scale physical trials
+
+efficient trials
+
+efficient trials
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Electronic health records
+
+•
+
+Optimization: with data
+
+•
+
+Simulations for drug effidiverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Wearable and remote monitoring de-
+
+•
+
+Optimization: with data
+
+•
+
+Simulations for drug effidiverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Wearable and remote monitoring defrom DTs, researchers can
+
+from DTs, researchers can
+
+cacy testing, reducing
+
+cacy testing, reducing
+
+diverse patient populations
+
+diverse patient populations
+
+vices
+
+vices
+
+vices
+
+from DTs, researchers can
+
+from DTs, researchers can
+
+cacy testing, reducing
+
+cacy testing, reducing
+
+diverse patient populations
+
+diverse patient populations
+
+vices
+
+vices
+
+vices
+
+optimize trial parameters by
+
+optimize trial parameters by
+
+the need for early-stage
+
+the need for early-stage
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Health databases
+
+optimize trial parameters by
+
+optimize trial parameters by
+
+the need for early-stage
+
+the need for early-stage
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Health databases
+
+adjusting dosages and selectadjusting dosages and selectin-person trials
+
+in-person trials
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+adjusting dosages and selectadjusting dosages and selectin-person trials
+
+in-person trials
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+ing ideal patient cohorts.
+
+ing ideal patient cohorts.
+
+•
+
+Virtualized, patient-spediverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+This approach refines drug
+
+This approach refines drug
+
+cific trials that allow recific trials that allow rediverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+formulations and identifies
+
+formulations and identifies
+
+searchers to adjust
+
+searchers to adjust
+
+diverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+optimal therapeutic protooptimal therapeutic protodosages and predict padosages and predict padiverse patient populations
+
+diverse patient populations
+
+•
+
+•
+
+Pharmaceutical and clinical trial data
+
+cols, reducing unnecessary
+
+cols, reducing unnecessary
+
+tient outcomes
+
+tient outcomes
+
+success
+
+[2,3,14,17,19].
+
+The
+
+outputs
+
+of
+
+these
+
+conditions [1-3,14,17,19-21,27-30,32], and intensive care unit
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+[4,8,17-20,24].
+
+Challenges and Opportunities in Advancing DT
+
+XSL•FO
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+undermining
+
+coherence
+
+in
+
+design,
+
+Ringeval et al
+
+Ringeval et al
+
+quality and ensure patient information integrity. Further,
+
+undermining
+
+coherence
+
+in
+
+design,
+
+validation,
+
+and
+
+and restrictive trade agreements by Western countries limits these nations’ability to develop local solutions [42]. Dependency on international loans often shifts focus toward
+
+adoption.
+Limitations
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+15.
+
+Bai J, Lu Y, Wang H, Zhao J. How synergy between mechanistic and statistical models is impacting research in atrial
+
+Bai J, Lu Y, Wang H, Zhao J. How synergy between mechanistic and statistical models is impacting research in atrial
+
+(page number not for citation purposes)
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+JOURNAL OF MEDICAL INTERNET RESEARCH
+
+Ringeval et al
+
+40.
+
+Woods WA, Watson M, Ranaweera S, Tajuria G, Sumathipala A. Under-representation of low and middle income countries
+
+Woods WA, Watson M, Ranaweera S, Tajuria G, Sumathipala A. Under-representation of low and middle income countries
+
+Edited by T de Azevedo Cardoso; submitted 02.12.24; peer-reviewed by D Drummond, D Madell; comments to author 10.12.24; revised version received 20.01.25; accepted 24.01.25; published 19.02.25
+Please cite as:
+Ringeval M, Etindele Sosso FA, Cousineau M, Paré G
+Advancing Health Care With Digital Twins: Meta-Review of Applications and Implementation Challenges J Med Internet Res 2025;27:e69544
+URL:
+
+(page number not for citation purposes)
