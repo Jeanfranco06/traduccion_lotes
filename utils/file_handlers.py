@@ -593,7 +593,50 @@ class FileHandler:
 
             doc = Document(docx_path)
 
-            # Recolectar todos los elementos de párrafos y celdas
+            WATERMARK_PATTERN = re.compile(
+                r'XSL.?FO|RenderX|\(page number not for citation\)|'
+                r'J Med Internet Res \d+.*?p\.\s*\d+|https?://www\.jmir\.org|'
+                r'JOURNAL OF MEDICAL INTERNET RESEARCH|Ringeval\s+(?:et al|y col)',
+                re.IGNORECASE
+            )
+
+            # --- PRE-NORMALIZACIÓN: Aplanar tablas accidentales de pdf2docx y eliminar tablas de watermark ---
+            for table in list(doc.tables):
+                full_text = "".join(c.text.strip() for row in table.rows for c in row.cells)
+                cleaned_text = WATERMARK_PATTERN.sub("", full_text).strip()
+                
+                # A. Tabla de watermark o encabezado repetido -> ELIMINAR
+                if not cleaned_text or (len(table.rows) <= 2 and WATERMARK_PATTERN.search(full_text) and len(cleaned_text) < 40):
+                    p_parent = table._element.getparent()
+                    if p_parent is not None:
+                        p_parent.remove(table._element)
+                    continue
+
+                # B. Tabla científica real (>=5 filas con Problem/Entradas) -> CONSERVAR
+                is_sci = ("Problem" in full_text or "Problema" in full_text or "Root causes" in full_text or "Entradas" in full_text) and len(table.rows) >= 5
+                if is_sci:
+                    continue
+
+                # C. Tabla de layout accidental (oración o lista partida por pdf2docx) -> APLANAR A PÁRRAFO
+                parent = table._element.getparent()
+                if parent is not None:
+                    tbl_pos = list(parent).index(table._element)
+                    row_texts = []
+                    for row in table.rows:
+                        cell_texts = []
+                        for cell in row.cells:
+                            ct = cell.text.strip()
+                            if ct and ct not in cell_texts:
+                                cell_texts.append(ct)
+                        if cell_texts:
+                            row_texts.append(" ".join(cell_texts))
+                    flattened = " ".join(row_texts).strip()
+                    if flattened:
+                        new_p = doc.add_paragraph(flattened)
+                        parent.insert(tbl_pos, new_p._element)
+                    parent.remove(table._element)
+
+            # Recolectar todos los elementos de párrafos y celdas limpios
             raw_elements = []
             for p in doc.paragraphs:
                 t = p.text.strip()
@@ -613,10 +656,9 @@ class FileHandler:
                 return True
 
             def is_noise(t):
-                return bool(re.search(r'\(page number not for citation purposes\)|XSL-FO RenderX|RenderX|J Med Internet Res \d+.*?p\.\s*\d+|https?://www\.jmir\.org/\d+/\d+/e\d+', t, re.IGNORECASE))
+                return bool(re.search(r'\(page number not for citation purposes\)|XSL-FO RenderX|RenderX|J Med Internet Res \d+.*?p\.\s*\d+|https?://www\.jmir\.org', t, re.IGNORECASE))
 
             def is_skip_element(t):
-                # Números puros, porcentajes, símbolos, DOIs, URLs, caracteres aislados
                 if re.fullmatch(r'[\d\s.,;:/\-+%()\[\]<>=±]+', t):
                     return True
                 if re.fullmatch(r'https?://\S+|doi:\S+', t, re.IGNORECASE):
@@ -640,7 +682,6 @@ class FileHandler:
                     continue
 
                 if in_references and not translate_references:
-                    # Si no se traducen referencias, conservar entradas bibliográficas intactas
                     if re.match(r'^\[?\d+\]?[\.\s]', orig_t.strip()) or re.search(r'https?://|doi:', orig_t):
                         continue
 

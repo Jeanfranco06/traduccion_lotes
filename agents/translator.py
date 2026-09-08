@@ -12,8 +12,8 @@ class TranslatorAgent:
     Toma texto original y genera traducción preservando formato.
     """
     
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-3.5-flash",
-                 fallback_model_name: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.5-flash",
+                 fallback_model_name: Optional[str] = "gemini-2.0-flash"):
         """
         Inicializa el agente traductor.
         
@@ -87,7 +87,7 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
     def _is_quota_exhausted(error: Exception) -> bool:
         """Detecta si el error corresponde a cuota agotada (429 / RESOURCE_EXHAUSTED)."""
         text = str(error)
-        return ('429' in text) or ('RESOURCE_EXHAUSTED' in text.upper())
+        return ('429' in text) or ('RESOURCE_EXHAUSTED' in text.upper()) or ('quota' in text.lower())
     
     def _invoke_chain(self, inputs: Dict[str, Any]) -> str:
         """
@@ -119,24 +119,16 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
         if not text_dict:
             return {}
 
-        lang_names = {
-            'es': 'español/Spanish',
-            'en': 'English/inglés',
-            'fr': 'francés/French',
-            'de': 'alemán/German',
-            'it': 'italiano/Italian',
-            'pt': 'portugués/Portuguese'
-        }
-        source_name = lang_names.get(source_language, source_language)
-        target_name = lang_names.get(target_language, target_language)
+        import json, time, re
+        glossary_items = [f"- {g['source']} -> {g['target']}" for g in (glossary or []) if isinstance(g, dict)]
+        glossary_str = "\n".join(glossary_items) if glossary_items else "Sin glosario específico."
 
         prompt_str = (
-            f"Eres un traductor profesional experto en {target_name}. "
-            f"Traduce EXCLUSIVAMENTE del {source_name} al {target_name}.\n\n"
-            f"INSTRUCCIONES CRÍTICAS:\n"
-            f"1. Traduce los VALORES del siguiente objeto JSON al {target_name}.\n"
-            f"2. MANTÉN LAS CLAVES EXACTAMENTE COMO ESTÁN. NO agregues ni elimines claves.\n"
-            f"3. Si un valor es un título o encabezado (ejemplo: 'DATA EXTRACTION', 'RESULTS', 'LIMITATIONS'), tradúcelo al {target_name} ('EXTRACCIÓN DE DATOS', 'RESULTADOS', 'LIMITACIONES').\n"
+            f"Eres un traductor científico experto. Traduce todos los valores de este diccionario JSON del {source_language} al {target_language}.\n\n"
+            f"REGLAS CRÍTICAS:\n"
+            f"1. Conserva EXACTAMENTE las mismas claves JSON.\n"
+            f"2. Traduce ÚNICAMENTE los valores al {target_language} con precisión académica y tono formal.\n"
+            f"3. Glosario de términos:\n{glossary_str}\n"
             f"4. Si un valor es 'snowballing', tradúcelo como 'búsqueda en bola de nieve' o 'muestreo en bola de nieve'.\n"
             f"5. Conserva intactos números de referencia [1], URLs (https://...), DOIs (doi:10.xxx) y marcas registradas (Siemens, Medtronic, etc.).\n"
             f"6. Responde ÚNICAMENTE con un JSON válido parseable. Sin explicaciones ni bloques markdown ```json.\n\n"
@@ -144,44 +136,53 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
             + json.dumps(text_dict, ensure_ascii=False, indent=2)
         )
 
-        try:
-            from langchain_core.prompts import ChatPromptTemplate
-            dict_prompt = ChatPromptTemplate.from_messages([("human", "{prompt}")])
-            chain = dict_prompt | self.llm | StrOutputParser()
+        from langchain_core.prompts import ChatPromptTemplate
+        dict_prompt = ChatPromptTemplate.from_messages([("human", "{prompt}")])
+        chain = dict_prompt | self.llm | StrOutputParser()
 
+        response = None
+        for attempt in range(1, 4):
             try:
                 response = chain.invoke({"prompt": prompt_str})
+                break
             except Exception as primary_err:
+                print(f"[Translator] Intento {attempt} con {self.model_name} falló: {primary_err}")
                 if self.fallback_llm is not None and self._is_quota_exhausted(primary_err):
-                    fallback_chain = dict_prompt | self.fallback_llm | StrOutputParser()
-                    response = fallback_chain.invoke({"prompt": prompt_str})
-                else:
-                    raise primary_err
-
-            # Parsear JSON de respuesta
-            import re
-            cleaned_resp = str(response or "").strip()
-            cleaned_resp = re.sub(r'^```json\s*', '', cleaned_resp)
-            cleaned_resp = re.sub(r'^```\s*', '', cleaned_resp)
-            cleaned_resp = re.sub(r'\s*```$', '', cleaned_resp)
-
-            translated_map = None
-            try:
-                translated_map = json.loads(cleaned_resp)
-            except Exception:
-                json_match = re.search(r'\{.*\}', cleaned_resp, re.DOTALL)
-                if json_match:
+                    print(f"[Translator] Probando modelo de respaldo {self.fallback_model_name}...")
                     try:
-                        translated_map = json.loads(json_match.group(0))
-                    except Exception:
-                        pass
+                        fallback_chain = dict_prompt | self.fallback_llm | StrOutputParser()
+                        response = fallback_chain.invoke({"prompt": prompt_str})
+                        break
+                    except Exception as fb_err:
+                        print(f"[Translator] Intento con respaldo {self.fallback_model_name} falló: {fb_err}")
+                
+                if attempt < 3:
+                    sleep_s = 10 * attempt
+                    print(f"[Translator] Esperando {sleep_s}s antes de reintentar...")
+                    time.sleep(sleep_s)
+                else:
+                    return text_dict
 
-            if isinstance(translated_map, dict):
-                return {str(k): str(v) for k, v in translated_map.items()}
-            return text_dict
-        except Exception as e:
-            print(f"[Translator] Error traduciendo diccionario estructurado: {e}")
-            return text_dict
+        # Parsear JSON de respuesta
+        cleaned_resp = str(response or "").strip()
+        cleaned_resp = re.sub(r'^```json\s*', '', cleaned_resp)
+        cleaned_resp = re.sub(r'^```\s*', '', cleaned_resp)
+        cleaned_resp = re.sub(r'\s*```$', '', cleaned_resp)
+
+        translated_map = None
+        try:
+            translated_map = json.loads(cleaned_resp)
+        except Exception:
+            json_match = re.search(r'\{.*\}', cleaned_resp, re.DOTALL)
+            if json_match:
+                try:
+                    translated_map = json.loads(json_match.group(0))
+                except Exception:
+                    pass
+
+        if isinstance(translated_map, dict):
+            return {str(k): str(v) for k, v in translated_map.items()}
+        return text_dict
 
     def translate_text(self, text: str, source_language: str = "es", 
                       target_language: str = "en", context: str = "",
