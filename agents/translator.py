@@ -157,7 +157,7 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
                         print(f"[Translator] Intento con respaldo {self.fallback_model_name} falló: {fb_err}")
                 
                 if attempt < 3:
-                    sleep_s = 10 * attempt
+                    sleep_s = 5 * attempt
                     print(f"[Translator] Esperando {sleep_s}s antes de reintentar...")
                     time.sleep(sleep_s)
                 else:
@@ -466,27 +466,12 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
         if src_words is None or len(words) == 0:
             return False
 
-        # Contar cuántas palabras del idioma origen (funcionales) aparecen en text.
-        # Pegar palabras: contar apariciones de cada palabra funcional del origen.
-        def _count_function_words(word_set):
-            hits = 0
-            for w in word_set:
-                count = 0
-                idx = 0
-                while True:
-                    idx = lower_sample.find(' ' + w + ' ', idx)
-                    if idx == -1:
-                        break
-                    idx += 1
-                    count += 1
-                if lower_sample.startswith(w + ' '):
-                    count += 1
-                if lower_sample.endswith(' ' + w):
-                    count += 1
-                hits += count
-            return hits
-
         lower_sample = sample.lower()
+        words_in_text = lower_sample.split()
+
+        def _count_function_words(word_set):
+            return sum(1 for w in words_in_text if w in word_set)
+
         orig_hits = _count_function_words(src_words)
         tgt_hits = _count_function_words(tgt_words) if tgt_words else 0
 

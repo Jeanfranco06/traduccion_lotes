@@ -1,5 +1,7 @@
 import os
 import json
+import sys
+import subprocess
 import pandas as pd
 import tempfile
 from typing import Dict, Any, Optional
@@ -12,6 +14,115 @@ from bs4 import BeautifulSoup
 
 class FileHandler:
     """Manejador de archivos para lectura y escritura de diferentes formatos."""
+
+    @staticmethod
+    def _sanitize_xml_text(text: Any) -> str:
+        """
+        Sanitiza texto antes de escribirlo en DOCX/XML.
+        Elimina NULL bytes y caracteres de control inválidos para XML 1.0.
+        """
+        if text is None:
+            return ""
+
+        text = str(text).replace('\x00', '')
+        return ''.join(
+            ch for ch in text
+            if ch in '\t\n\r' or ord(ch) >= 32
+        )
+
+    @staticmethod
+    def _docx_has_meaningful_content(docx_path: str) -> bool:
+        """Verifica si un DOCX contiene párrafos o tablas con texto útil."""
+        try:
+            if not os.path.exists(docx_path):
+                return False
+
+            doc = Document(docx_path)
+            if any((p.text or '').strip() for p in doc.paragraphs):
+                return True
+
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if (cell.text or '').strip():
+                            return True
+            return False
+        except Exception:
+            return False
+
+    @staticmethod
+    def _safe_remove(path: Optional[str]):
+        """Elimina un archivo temporal sin propagar errores."""
+        if path and os.path.exists(path):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+    @staticmethod
+    def _convert_pdf_to_docx_with_word(pdf_path: str, docx_path: str) -> bool:
+        """
+        Usa Microsoft Word para reflujo de PDF a DOCX.
+        Suele ser más robusto que pdf2docx para PDFs complejos.
+        """
+        try:
+            abs_pdf = os.path.abspath(pdf_path)
+            abs_docx = os.path.abspath(docx_path)
+            print("[PDF→DOCX] Intentando conversión con Word (timeout: 25s)...")
+
+            helper_script = """
+import os
+import sys
+import pythoncom
+import win32com.client
+
+pdf_path = sys.argv[1]
+docx_path = sys.argv[2]
+pythoncom.CoInitialize()
+word = None
+doc = None
+try:
+    word = win32com.client.DispatchEx('Word.Application')
+    word.Visible = False
+    word.DisplayAlerts = 0
+    doc = word.Documents.Open(pdf_path, ConfirmConversions=False, ReadOnly=True)
+    doc.SaveAs2(docx_path, FileFormat=16)
+finally:
+    if doc:
+        try:
+            doc.Close(False)
+        except Exception:
+            pass
+    if word:
+        try:
+            word.Quit()
+        except Exception:
+            pass
+    try:
+        pythoncom.CoUninitialize()
+    except Exception:
+        pass
+"""
+
+            completed = subprocess.run(
+                [sys.executable, "-c", helper_script, abs_pdf, abs_docx],
+                capture_output=True,
+                text=True,
+                timeout=25,
+                check=False
+            )
+            if completed.returncode != 0:
+                stderr = (completed.stderr or completed.stdout or "").strip()
+                print(f"[PDF→DOCX] Word devolvió error: {stderr[:300]}")
+                return False
+
+            return FileHandler._docx_has_meaningful_content(abs_docx)
+        except subprocess.TimeoutExpired:
+            print("[PDF→DOCX] Word tardó demasiado; se omite y se usa fallback.")
+            return False
+        except Exception as e:
+            print(f"[PDF→DOCX] Conversión con Word no disponible o falló: {e}")
+            return False
     
     @staticmethod
     def read_file(file_path: str) -> Dict[str, Any]:
@@ -69,36 +180,190 @@ class FileHandler:
     def pdf_to_docx(pdf_path: str) -> Optional[str]:
         """
         Convierte un PDF a DOCX preservando el formato.
-        
+        Pre-sanitiza el PDF con PyMuPDF para eliminar bytes nulos y
+        caracteres de control que causan errores XML en pdf2docx.
+        Si aún falla alguna página, la extrae como texto plano.
+
         Args:
             pdf_path: Ruta al archivo PDF
-            
+
         Returns:
             Ruta al archivo DOCX creado o None si falla
         """
+        clean_path = None
         try:
             import logging
             import warnings
+            import io
+            from contextlib import redirect_stdout, redirect_stderr
             logging.getLogger("fontTools").setLevel(logging.WARNING)
             logging.getLogger("pdf2docx").setLevel(logging.WARNING)
             warnings.filterwarnings("ignore", message=".*fitz API is deprecated.*")
 
             from pdf2docx import Converter
-            
-            # Crear archivo temporal para el DOCX
+            try:
+                import pymupdf as fitz
+            except ImportError:
+                import fitz
+
             temp_dir = tempfile.gettempdir()
             docx_filename = os.path.splitext(os.path.basename(pdf_path))[0] + '.docx'
             docx_path = os.path.join(temp_dir, docx_filename)
-            
-            # Convertir PDF a DOCX
-            cv = Converter(pdf_path)
-            cv.convert(docx_path)
-            cv.close()
-            
+
+            # 0. Intentar primero con Word, que suele preservar mejor layout e imágenes
+            if FileHandler._convert_pdf_to_docx_with_word(pdf_path, docx_path):
+                print("[PDF→DOCX] Conversión con Word completada.")
+                return docx_path
+
+            # --- Pre-sanitización: eliminar bytes nulos y caracteres de control ---
+            print("[PDF→DOCX] Iniciando conversión con pdf2docx...")
+            clean_path = os.path.join(
+                temp_dir,
+                f"_clean_{os.path.splitext(os.path.basename(pdf_path))[0]}.pdf"
+            )
+            pdf_in = fitz.open(pdf_path)
+            pdf_clean = fitz.open()
+
+            for page_num in range(len(pdf_in)):
+                page = pdf_in[page_num]
+                # Limpiar el content stream de la página
+                try:
+                    page.clean_contents()
+                except Exception:
+                    pass
+                # Insertar copia limpia en el documento de salida
+                pdf_clean.insert_pdf(pdf_in, from_page=page_num, to_page=page_num)
+
+            pdf_clean.save(clean_path, garbage=4, deflate=True, clean=True)
+            pdf_clean.close()
+            pdf_in.close()
+
+            # --- Conversión con pdf2docx sobre el PDF sanitizado ---
+            print(f"[PDF→DOCX] Convirtiendo con pdf2docx ({os.path.getsize(clean_path) // 1024}KB)...")
+            try:
+                import threading
+                conversion_log = io.StringIO()
+                conversion_error = [None]
+                conversion_result = [None]
+
+                def _run_pdf2docx():
+                    try:
+                        with redirect_stdout(conversion_log), redirect_stderr(conversion_log):
+                            cv = Converter(clean_path)
+                            cv.convert(docx_path)
+                            cv.close()
+                        conversion_result[0] = True
+                    except Exception as e:
+                        conversion_error[0] = e
+
+                t = threading.Thread(target=_run_pdf2docx, daemon=True)
+                t.start()
+                t.join(timeout=120)
+
+                if t.is_alive():
+                    print("[PDF→DOCX] pdf2docx tardó más de 120s; saltando a fallback por páginas.")
+                elif conversion_error[0]:
+                    print(f"[PDF→DOCX] Conversión sanitizada falló: {conversion_error[0]}")
+                else:
+                    log_text = conversion_log.getvalue()
+                    ignored_pages = (
+                        'Ignore page' in log_text or
+                        'making page error' in log_text or
+                        'XML compatible' in log_text
+                    )
+                    if FileHandler._docx_has_meaningful_content(docx_path) and not ignored_pages:
+                        FileHandler._safe_remove(clean_path)
+                        print("[PDF→DOCX] Conversión con pdf2docx exitosa.")
+                        return docx_path
+                    if ignored_pages:
+                        print("[PDF→DOCX] Se detectaron páginas ignoradas en pdf2docx; activando recuperación robusta.")
+            except Exception as e:
+                print(f"[PDF→DOCX] Conversión sanitizada falló: {e}")
+
+            # --- Fallback: página por página ---
+            from docx import Document as DocxDoc
+            merged = DocxDoc()
+            pdf_doc = fitz.open(pdf_path)
+            total_pages = len(pdf_doc)
+            pages_recovered = 0
+            print(f"[PDF→DOCX] Fallback página por página ({total_pages} páginas)...")
+
+            for page_num in range(total_pages):
+                page_ok = False
+                temp_path = os.path.join(temp_dir, f"_p{page_num}.docx")
+
+                try:
+                    import threading as _th
+                    page_err = [None]
+                    page_done = [False]
+
+                    def _convert_page(p=page_num, tp=temp_path):
+                        try:
+                            cv = Converter(clean_path)
+                            cv.convert(tp, start=p, end=p + 1)
+                            cv.close()
+                            page_done[0] = True
+                        except Exception as e:
+                            page_err[0] = e
+
+                    pt = _th.Thread(target=_convert_page, daemon=True)
+                    pt.start()
+                    pt.join(timeout=30)
+
+                    if pt.is_alive():
+                        print(f"[PDF→DOCX] Página {page_num+1} timeout (>30s), extrayendo texto plano")
+                    elif page_err[0]:
+                        print(f"[PDF→DOCX] Página {page_num+1} error: {page_err[0]}")
+                    elif page_done[0]:
+                        page_doc = DocxDoc(temp_path)
+                        if FileHandler._docx_has_meaningful_content(temp_path):
+                            for para in page_doc.paragraphs:
+                                p_text = FileHandler._sanitize_xml_text(para.text)
+                                new_para = merged.add_paragraph(p_text, para.style)
+                                try:
+                                    new_para.alignment = para.alignment
+                                except Exception:
+                                    pass
+                            for table in page_doc.tables:
+                                new_table = merged.add_table(
+                                    rows=len(table.rows), cols=len(table.columns))
+                                for i, row in enumerate(table.rows):
+                                    for j, cell in enumerate(row.cells):
+                                        new_table.cell(i, j).text = FileHandler._sanitize_xml_text(cell.text)
+                            page_ok = True
+
+                    FileHandler._safe_remove(temp_path)
+                except Exception:
+                    FileHandler._safe_remove(temp_path)
+
+                if not page_ok:
+                    page = pdf_doc[page_num]
+                    text = FileHandler._sanitize_xml_text(page.get_text())
+                    if text and text.strip():
+                        for line in text.split('\n'):
+                            line = line.strip()
+                            if line:
+                                merged.add_paragraph(line)
+                    pages_recovered += 1
+
+                if page_num < total_pages - 1:
+                    merged.add_page_break()
+
+                if (page_num + 1) % 5 == 0 or page_num == total_pages - 1:
+                    print(f"[PDF→DOCX] Progreso páginas: {page_num+1}/{total_pages}")
+
+            pdf_doc.close()
+            merged.save(docx_path)
+            if pages_recovered:
+                print(f"[PDF→DOCX] {pages_recovered} página(s) recuperada(s) con extracción de texto plano")
+
+            FileHandler._safe_remove(clean_path)
+
             return docx_path
-            
+
         except Exception as e:
             print(f"Error al convertir PDF a DOCX: {e}")
+            FileHandler._safe_remove(clean_path)
             return None
     
     @staticmethod
@@ -617,7 +882,27 @@ class FileHandler:
                 if is_sci:
                     continue
 
-                # C. Tabla de layout accidental (oración o lista partida por pdf2docx) -> APLANAR A PÁRRAFO
+                # C. Solo aplanar tablas claramente accidentales de layout.
+                # Antes se aplanaban casi todas y eso rompía maquetación, imágenes y alineación.
+                non_empty_cells = [
+                    cell.text.strip()
+                    for row in table.rows for cell in row.cells
+                    if cell.text.strip()
+                ]
+                is_small_layout_table = (
+                    len(table.rows) <= 4 and
+                    len(table.columns) <= 2 and
+                    len(non_empty_cells) <= 6
+                )
+                has_structured_table_signals = (
+                    len(table.rows) >= 4 or
+                    len(table.columns) >= 3 or
+                    any(len(text) > 100 for text in non_empty_cells)
+                )
+
+                if not is_small_layout_table or has_structured_table_signals:
+                    continue
+
                 parent = table._element.getparent()
                 if parent is not None:
                     tbl_pos = list(parent).index(table._element)
@@ -733,12 +1018,13 @@ class FileHandler:
                             break
                     except Exception as b_err:
                         print(f"[Translator] Intento {attempt} fallido para lote {b_idx+1}/{total_batches}: {b_err}")
-                        time.sleep(3 * attempt)
+                        time.sleep(2 * attempt)
 
                 # Reinyectar traducciones en sus objetos DOCX originales
                 for idx, (p_obj, orig_text) in enumerate(batch):
                     key = f"elem_{idx}"
                     translated_val = translated_map.get(key, orig_text) if translated_map else orig_text
+                    translated_val = FileHandler._sanitize_xml_text(translated_val)
                     if translated_val:
                         if p_obj.runs:
                             p_obj.runs[0].text = str(translated_val)
@@ -806,20 +1092,6 @@ class FileHandler:
                         p.paragraph_format.space_before = Pt(8)
                         p.paragraph_format.space_after = Pt(8)
                         p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-                        # Si la imagen es ancha (> 3.3 pulgadas), garantizar que esté en 1 columna
-                        extent = drawing.find('.//' + qn('wp:extent'))
-                        if extent is not None:
-                            cx = int(extent.get('cx', 0))
-                            if cx > 3000000:  # ~3.3 pulgadas en EMUs
-                                if i > 0:
-                                    prev_p = doc.paragraphs[i - 1]
-                                    prev_pPr = prev_p._element.get_or_add_pPr()
-                                    sect1 = parse_xml(r'<w:sectPr %s><w:type w:val="continuous"/><w:cols w:num="1"/></w:sectPr>' % nsdecls('w'))
-                                    prev_pPr.append(sect1)
-                                
-                                sect2 = parse_xml(r'<w:sectPr %s><w:type w:val="continuous"/><w:cols w:num="2" w:space="720"/></w:sectPr>' % nsdecls('w'))
-                                pPr.append(sect2)
 
             # -------------------------------------------------------------
             # 2. LIMPIEZA DE MARCAS DE AGUA (HIPERVÍNCULOS Y TEXTOS ESPECÍFICOS)
@@ -1025,7 +1297,7 @@ class FileHandler:
                     continue
 
                 if trans_idx < num_trans:
-                    new_text = trans_paras[trans_idx]
+                    new_text = FileHandler._sanitize_xml_text(trans_paras[trans_idx])
                     if elem.runs:
                         elem.runs[0].text = new_text
                         for r in elem.runs[1:]:

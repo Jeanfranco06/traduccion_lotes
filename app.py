@@ -124,13 +124,17 @@ def process_file_with_graph(file_data: Dict[str, Any], graph: TranslationGraph,
             docx_path = file_data.get('docx_path')
             out_docx = docx_path.replace('.docx', '_traducido.docx') if docx_path else None
             if out_docx and os.path.exists(out_docx):
-                # Optimizar layout: eliminar watermarks, comprimir espacios, bordes en tablas
+                if progress_callback:
+                    progress_callback('formatter', 0.9)
+                print(f"[Post-procesamiento] Optimizando DOCX traducido...")
                 FileHandler.optimize_translated_docx(out_docx, out_docx)
+                print(f"[Post-procesamiento] Convirtiendo DOCX a PDF...")
                 pdf_path = FileHandler.docx_to_pdf(out_docx)
                 if pdf_path and os.path.exists(pdf_path):
                     with open(pdf_path, 'rb') as pf:
                         result['pdf_bytes'] = pf.read()
                     result['pdf_path'] = pdf_path
+                    print(f"[Post-procesamiento] PDF generado: {len(result['pdf_bytes']) // 1024}KB")
 
         
         if graph_result.get('error'):
@@ -294,16 +298,20 @@ def main():
             # Barra de progreso
             progress_bar = st.progress(0)
             status_text = st.empty()
+            import time as _time_mod
+            _start_time = _time_mod.time()
             
             # Funcion de callback para progreso
             step_names = {
                 'extractor': 'Analizando documento...',
                 'translator': 'Traduciendo contenido...',
                 'reviewer': 'Revisando calidad...',
+                'corrector': 'Corrigiendo errores...',
                 'formatter': 'Formateando resultado...'
             }
             
             def update_progress(step_name, progress, chunk_info=None):
+                import time as _time
                 base_progress = (i / len(uploaded_files)) if uploaded_files else 0
                 file_weight = 1.0 / len(uploaded_files) if uploaded_files else 1.0
                 total_progress = base_progress + (progress * file_weight)
@@ -311,10 +319,12 @@ def main():
                 
                 chunk_text = ""
                 if chunk_info:
-                    chunk_text = f" | Chunk {chunk_info['current']}/{chunk_info['total']}"
+                    chunk_text = f" | Lote {chunk_info['current']}/{chunk_info['total']}"
                 
                 model_display = st.session_state.get('selected_model', 'gemini-3.5-flash')
-                status_text.text(f"Procesando: {file.name}{chunk_text} [{model_display}] - {step_names.get(step_name, 'Procesando...')}")
+                elapsed = int(_time.time() - _start_time)
+                elapsed_text = f" ({elapsed}s)" if elapsed > 5 else ""
+                status_text.text(f"Procesando: {file.name}{chunk_text} [{model_display}] - {step_names.get(step_name, 'Procesando...')}{elapsed_text}")
                 
                 # Guardar progreso de chunks en session_state
                 if step_name == 'translator' and chunk_info:
@@ -329,7 +339,7 @@ def main():
             
             # Procesar cada archivo
             for i, file in enumerate(uploaded_files):
-                status_text.text(f"Procesando: {file.name} ({i+1}/{len(uploaded_files)})")
+                status_text.text(f"Procesando: {file.name} ({i+1}/{len(uploaded_files)}) - Leyendo archivo...")
                 
                 # Guardar archivo temporalmente
                 tmp_path = None
@@ -340,6 +350,9 @@ def main():
                         tmp_path = tmp.name
                     
                     # Leer archivo
+                    is_pdf = file.name.lower().endswith('.pdf')
+                    if is_pdf:
+                        status_text.text(f"Procesando: {file.name} ({i+1}/{len(uploaded_files)}) - Convirtiendo PDF a DOCX...")
                     file_data = FileHandler.read_file(tmp_path)
                     
                     # Usar el nombre original del archivo, no el del temporal
@@ -349,8 +362,11 @@ def main():
                     if file_data.get('docx_path'):
                         file_data['is_pdf_conversion'] = True
                     
-                    # Obtener cache existente si hay reanudación
+                    # Obtener cache existente si hay reanudacion
                     existing_cache = st.session_state.translated_chunks_progress.get(file.name, {}).get('chunks_cache', [])
+                    
+                    if is_pdf:
+                        status_text.text(f"Procesando: {file.name} ({i+1}/{len(uploaded_files)}) - Traduciendo contenido...")
                     
                     # Procesar con grafo de agentes
                     result = process_file_with_graph(
@@ -499,7 +515,7 @@ def main():
                                 docx_p = result.get('docx_path')
                                 out_docx_p = docx_p.replace('.docx', '_traducido.docx') if docx_p else None
                                 if out_docx_p and os.path.exists(out_docx_p):
-                                    conv_pdf = FileHandlerLocal.docx_to_pdf(out_docx_p)
+                                    conv_pdf = FileHandler.docx_to_pdf(out_docx_p)
                                     if conv_pdf and os.path.exists(conv_pdf):
                                         with open(conv_pdf, 'rb') as pf:
                                             pdf_data = pf.read()
@@ -509,7 +525,7 @@ def main():
                             if not pdf_data:
                                 try:
                                     tmp_pdf_path = os.path.join(tempfile.gettempdir(), f"tmp_dl_{os.getpid()}_{int(time.time())}.pdf")
-                                    if FileHandlerLocal.write_file(tmp_pdf_path, translated_text, result) and os.path.exists(tmp_pdf_path):
+                                    if FileHandler.write_file(tmp_pdf_path, translated_text, result) and os.path.exists(tmp_pdf_path):
                                         with open(tmp_pdf_path, 'rb') as f:
                                             pdf_data = f.read()
                                         result['pdf_bytes'] = pdf_data

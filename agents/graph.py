@@ -263,6 +263,10 @@ class TranslationGraph:
                     }
                     return state
             
+            text_to_translate = state.get('normalized_text')
+            if not text_to_translate:
+                text_to_translate = self.extractor.extract_text_from_content(original)
+
             # Limpiar el texto extraido
             text_to_translate = self.extractor.clean_extracted_text(text_to_translate)
             
@@ -391,7 +395,7 @@ class TranslationGraph:
                     
                     # Esperar entre llamadas para evitar rate limiting
                     if i > start_index:
-                        wait_time = 4  # 4 segundos entre llamadas
+                        wait_time = 2  # 2 segundos entre llamadas
                         print(f"[Translator] Esperando {wait_time}s antes del chunk {i+1}/{total_chunks}...")
                         time.sleep(wait_time)
                     
@@ -434,8 +438,8 @@ class TranslationGraph:
                     else:
                         error_msg = str(e)
                         if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg:
-                            print(f"[Translator] Rate limit alcanzado, esperando 90s...")
-                            time.sleep(90)
+                            print(f"[Translator] Rate limit alcanzado, esperando 30s...")
+                            time.sleep(30)
                             # Reintentar una vez
                             try:
                                 translated = self._translate_chunk_with_retries(
@@ -799,7 +803,7 @@ class TranslationGraph:
                 last_error = err_text
                 is_rate_limit = ('429' in err_text) or ('RESOURCE_EXHAUSTED' in err_text)
                 # Backoff: ante limitación de cuota esperar más que en errores puntuales
-                wait = (30 if is_rate_limit else 5) * attempt
+                wait = (15 if is_rate_limit else 3) * attempt
                 print(f"[Translator] Error intento {attempt}: {err_text[:90]}. Esperando {wait}s...")
                 if attempt < max_attempts:
                     time.sleep(wait)
