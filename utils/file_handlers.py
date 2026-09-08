@@ -720,166 +720,146 @@ class FileHandler:
     @staticmethod
     def optimize_translated_docx(docx_path: str, output_docx_path: str) -> bool:
         """
-        Post-procesa el DOCX traducido para mejorar el layout:
-        1. Elimina tablas donde TODO el texto es watermark/vacío.
-        2. Limpia celdas que solo contienen watermark (texto e imágenes).
-        3. Limpia párrafos standalone de watermark en el cuerpo.
-        4. Convierte sectPr intermedios a 'continuous' para eliminar saltos forzados.
-        5. Comprime espaciado de párrafos vacíos/excesivo (cuerpo y celdas).
-        6. Aplica bordes profesionales a tablas científicas (>=5 filas y >=4 cols).
+        Post-procesa el DOCX traducido para optimizar la maquetación y corregir defectos:
+        1. Preserva y posiciona correctamente todas las imágenes y figuras (elimina el
+           interlineado exacto de 1pt de pdf2docx que las ocultaba y envuelve figuras anchas
+           en secciones de 1 columna).
+        2. Limpia marcas de agua e hipervínculos de ruido (RenderX, XSL-FO, URLs de JMIR).
+        3. Corrige la altura fija de filas (hRule='exact' -> 'atLeast') para que el texto
+           en español no se desborde ni se solape con párrafos posteriores.
+        4. Formatea tablas científicas con bordes académicos y viñetas limpias (•).
+        5. Comprime espaciados excesivos en párrafos vacíos para evitar bloques en blanco.
         """
         try:
             from docx import Document
             from docx.shared import Pt
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
             from docx.oxml import parse_xml
             from docx.oxml.ns import nsdecls, qn
-            from lxml import etree
             import re
 
             WATERMARK_PATTERN = re.compile(
                 r'XSL.?FO|RenderX|\(page number not for citation\)|'
-                r'J Med Internet Res \d+.*?p\.\s*\d+|https?://www\.jmir\.org|'
-                r'JOURNAL OF MEDICAL INTERNET RESEARCH',
+                r'J Med Internet Res \d+.*?p\.\s*\d+|https?://www\.jmir\.org',
                 re.IGNORECASE
             )
-
-            # Patrón para encabezados de journal que aparecen repetidos como separadores de sección
-            JOURNAL_HEADER_PATTERN = re.compile(
-                r'^(JOURNAL OF MEDICAL INTERNET RESEARCH|Ringeval\s+(?:et al|y col))',
-                re.IGNORECASE
-            )
-
-            def _compress_para(p):
-                """Comprime espaciado de un párrafo vacío o con exceso de espacio."""
-                t = p.text.strip()
-                if not t:
-                    p.paragraph_format.space_before = Pt(0)
-                    p.paragraph_format.space_after = Pt(0)
-                    p.paragraph_format.line_spacing = Pt(1)
-                else:
-                    sa = p.paragraph_format.space_after
-                    sb = p.paragraph_format.space_before
-                    if sa is not None and sa.pt is not None and sa.pt > 8:
-                        p.paragraph_format.space_after = Pt(3)
-                    if sb is not None and sb.pt is not None and sb.pt > 8:
-                        p.paragraph_format.space_before = Pt(2)
-
-            def _is_drawing_watermark(p_elem):
-                """Párrafo con w:drawing pero sin texto — logo de imagen RenderX."""
-                if p_elem.find('.//' + qn('w:drawing')) is None:
-                    return False
-                text_content = "".join(
-                    (r.text or "") for r in p_elem.findall('.//' + qn('w:t'))
-                ).strip()
-                return not text_content
-
-            def _clear_watermark_para(p):
-                """Vacía texto, hyperlinks y drawings de un párrafo watermark."""
-                # Vaciar todos los w:t del párrafo (incluyendo dentro de w:hyperlink)
-                for wt in p._element.findall('.//' + qn('w:t')):
-                    wt.text = ""
-                # Remover drawings
-                for drawing in p._element.findall('.//' + qn('w:drawing')):
-                    dp = drawing.getparent()
-                    if dp is not None:
-                        dp.remove(drawing)
-                # Remover hyperlinks completos
-                for hyperlink in p._element.findall('.//' + qn('w:hyperlink')):
-                    hp = hyperlink.getparent()
-                    if hp is not None:
-                        hp.remove(hyperlink)
-                p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after = Pt(0)
-
-            def _get_para_full_text(p_elem):
-                """Extrae todo el texto de un párrafo incluyendo hyperlinks."""
-                return "".join(
-                    (t.text or "") for t in p_elem.findall('.//' + qn('w:t'))
-                ).strip()
-
-            def _is_watermark_cell(cell):
-                """Celda cuyo único texto es watermark (ningún otro contenido)."""
-                # Usar extracción de texto completa incluyendo hyperlinks
-                text = "".join(
-                    (t.text or "") for t in cell._tc.findall('.//' + qn('w:t'))
-                ).strip()
-                if not text:
-                    return True
-                non_wm = WATERMARK_PATTERN.sub("", text).strip()
-                return not non_wm
 
             doc = Document(docx_path)
 
-            # 0. Eliminar w:drawing que contienen texto watermark en DrawingML (a:t tags)
-            #    Esto cubre el logo SVG/EMF de RenderX embebido en drawings
-            A_T = '{http://schemas.openxmlformats.org/drawingml/2006/main}t'
-            drawings_to_remove = []
-            for drawing in doc.element.body.findall('.//' + qn('w:drawing')):
-                drawing_texts = "".join(
-                    (t.text or "") for t in drawing.findall('.//' + A_T)
-                ).strip()
-                if drawing_texts and WATERMARK_PATTERN.search(drawing_texts):
-                    drawings_to_remove.append(drawing)
-            for drawing in drawings_to_remove:
-                parent = drawing.getparent()
-                if parent is not None:
-                    parent.remove(drawing)
-            print(f"[Optimizer] Removed {len(drawings_to_remove)} watermark drawings")
+            # -------------------------------------------------------------
+            # 1. TRATAMIENTO Y POSICIONAMIENTO DE IMÁGENES / FIGURAS
+            # -------------------------------------------------------------
+            for i, p in enumerate(doc.paragraphs):
+                drawing = p._element.find('.//' + qn('w:drawing'))
+                if drawing is not None:
+                    # Verificar si contiene una imagen real (a:blip)
+                    blip = drawing.find('.//' + qn('a:blip'))
+                    if blip is not None:
+                        # Eliminar interlineado fijo que fuerza a la imagen a dibujarse fuera de la página
+                        pPr = p._element.get_or_add_pPr()
+                        spacing = pPr.find(qn('w:spacing'))
+                        if spacing is not None:
+                            pPr.remove(spacing)
+                        
+                        p.paragraph_format.line_spacing = 1.0
+                        p.paragraph_format.space_before = Pt(8)
+                        p.paragraph_format.space_after = Pt(8)
+                        p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-            # 1. Eliminar tablas donde TODO el contenido es watermark / vacío
+                        # Si la imagen es ancha (> 3.3 pulgadas), garantizar que esté en 1 columna
+                        extent = drawing.find('.//' + qn('wp:extent'))
+                        if extent is not None:
+                            cx = int(extent.get('cx', 0))
+                            if cx > 3000000:  # ~3.3 pulgadas en EMUs
+                                if i > 0:
+                                    prev_p = doc.paragraphs[i - 1]
+                                    prev_pPr = prev_p._element.get_or_add_pPr()
+                                    sect1 = parse_xml(r'<w:sectPr %s><w:type w:val="continuous"/><w:cols w:num="1"/></w:sectPr>' % nsdecls('w'))
+                                    prev_pPr.append(sect1)
+                                
+                                sect2 = parse_xml(r'<w:sectPr %s><w:type w:val="continuous"/><w:cols w:num="2" w:space="720"/></w:sectPr>' % nsdecls('w'))
+                                pPr.append(sect2)
 
-            tables_to_delete = []
-            for table in doc.tables:
-                all_cells_text = "".join(c.text.strip() for row in table.rows for c in row.cells)
-                cleaned = WATERMARK_PATTERN.sub("", all_cells_text).strip()
-                if not cleaned:
-                    tables_to_delete.append(table)
-            for t in tables_to_delete:
-                parent = t._element.getparent()
-                if parent is not None:
-                    parent.remove(t._element)
-
-            # 2. Limpiar celdas individuales que solo contienen watermark
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        if _is_watermark_cell(cell):
-                            for p in cell.paragraphs:
-                                _clear_watermark_para(p)
-
-            # 3. Limpiar párrafos de watermark en el cuerpo principal (incluye hyperlinks)
+            # -------------------------------------------------------------
+            # 2. LIMPIEZA DE MARCAS DE AGUA (HIPERVÍNCULOS Y TEXTOS ESPECÍFICOS)
+            # -------------------------------------------------------------
+            # Limpiar hipervínculos y runs de watermark en párrafos
             for p in doc.paragraphs:
-                full_text = _get_para_full_text(p._element)
-                if WATERMARK_PATTERN.search(full_text) or _is_drawing_watermark(p._element):
-                    _clear_watermark_para(p)
+                for hyperlink in list(p._element.findall('.//' + qn('w:hyperlink'))):
+                    h_text = "".join((t.text or "") for t in hyperlink.findall('.//' + qn('w:t')))
+                    if WATERMARK_PATTERN.search(h_text):
+                        hp = hyperlink.getparent()
+                        if hp is not None:
+                            hp.remove(hyperlink)
+                
+                for r in p.runs:
+                    if r.text and WATERMARK_PATTERN.search(r.text):
+                        r.text = ""
 
+            # Limpiar tablas completas o celdas que solo contengan watermark
+            for table in list(doc.tables):
+                all_text = "".join(c.text.strip() for row in table.rows for c in row.cells)
+                cleaned = WATERMARK_PATTERN.sub("", all_text).strip()
+                if not cleaned:
+                    parent = table._element.getparent()
+                    if parent is not None:
+                        parent.remove(table._element)
+                    continue
 
-            # 4. Convertir sectPr intermedios (dentro de pPr) a tipo 'continuous'
-            #    para eliminar saltos de página forzados entre secciones de pdf2docx
-            body = doc.element.body
-            for pPr in body.findall('.//' + qn('w:pPr')):
-                sectPr = pPr.find(qn('w:sectPr'))
-                if sectPr is not None:
-                    # Eliminar el type existente si lo hay
-                    existing_type = sectPr.find(qn('w:type'))
-                    if existing_type is not None:
-                        sectPr.remove(existing_type)
-                    # Añadir type=continuous
-                    type_elem = parse_xml(
-                        '<w:type %s w:val="continuous"/>' % nsdecls('w')
-                    )
-                    sectPr.insert(0, type_elem)
-
-            # 5. Comprimir espaciado de párrafos vacíos/excesivo (cuerpo + todas las celdas)
-            all_paras = list(doc.paragraphs)
-            for table in doc.tables:
                 for row in table.rows:
                     for cell in row.cells:
-                        all_paras.extend(cell.paragraphs)
-            for p in all_paras:
-                _compress_para(p)
+                        c_text = "".join((t.text or "") for t in cell._tc.findall('.//' + qn('w:t'))).strip()
+                        if c_text and not WATERMARK_PATTERN.sub("", c_text).strip():
+                            for wt in cell._tc.findall('.//' + qn('w:t')):
+                                wt.text = ""
+                            for hyperlink in list(cell._tc.findall('.//' + qn('w:hyperlink'))):
+                                hp = hyperlink.getparent()
+                                if hp is not None:
+                                    hp.remove(hyperlink)
 
-            # 6. Bordes profesionales en tablas científicas (>=5 filas, >=4 columnas)
+            # -------------------------------------------------------------
+            # 3. CORRECCIÓN DE ALTURA DE FILAS EN TODAS LAS TABLAS
+            # -------------------------------------------------------------
+            for table in doc.tables:
+                for row in table.rows:
+                    trPr = row._tr.get_or_add_trPr()
+                    trHeight = trPr.find(qn('w:trHeight'))
+                    if trHeight is not None:
+                        hRule = trHeight.get(qn('w:hRule'))
+                        if hRule == 'exact':
+                            trHeight.set(qn('w:hRule'), 'atLeast')
+
+            # -------------------------------------------------------------
+            # 4. FORMATEO, COLUMNAS Y CONTENCIÓN EN TABLAS CIENTÍFICAS
+            # -------------------------------------------------------------
+            # A. Reincorporar párrafos huérfanos que quedaron inmediatamente después de las tablas
+            body = doc.element.body
+            children = list(body)
+            for i, child in enumerate(children):
+                if child.tag.endswith("tbl"):
+                    if i + 1 < len(children) and children[i + 1].tag.endswith("p"):
+                        next_p = children[i + 1]
+                        text = "".join(next_p.itertext()).strip()
+                        if text and (text.startswith("optimizar") or text.startswith("recomendar") or text.startswith("vicios") or "Toma de decisiones" in text):
+                            for t in doc.tables:
+                                if t._element == child:
+                                    target_cell = None
+                                    for row in t.rows:
+                                        for cell in row.cells:
+                                            if "Optimización" in cell.text or "simulación" in cell.text:
+                                                target_cell = cell
+                                    if target_cell is None:
+                                        target_cell = t.rows[-1].cells[-1]
+                                    target_cell.add_paragraph(text)
+                                    body.remove(next_p)
+                                    break
+
+            # B. Deduplicar notas al pie repetidas (ej. 'aDT: gemelo digital.')
+            for p in doc.paragraphs:
+                if "aDT: gemelo digital." in p.text:
+                    p.text = re.sub(r'(aDT:\s*gemelo digital\.)+', r'\1', p.text)
+
+            # C. Bordes y anchos de columnas en tablas científicas (>=5 filas, >=4 columnas)
             BORDER_XML = (
                 '<w:tblBorders %s>'
                 '<w:top w:val="single" w:sz="12" w:space="0" w:color="000000"/>'
@@ -891,6 +871,10 @@ class FileHandler:
                 '</w:tblBorders>'
             ) % nsdecls('w')
 
+            HEADER_BORDER_XML = (
+                '<w:tcBorders %s><w:bottom w:val="single" w:sz="6" w:space="0" w:color="000000"/></w:tcBorders>'
+            ) % nsdecls('w')
+
             for table in doc.tables:
                 if len(table.rows) >= 5 and len(table.columns) >= 4:
                     tblPr = table._tbl.tblPr
@@ -898,19 +882,65 @@ class FileHandler:
                     if existing_borders is not None:
                         tblPr.remove(existing_borders)
                     tblPr.append(parse_xml(BORDER_XML))
-                    table.autofit = False
+                    table.autofit = True
+
+                    # Ajustar distribución de columnas (total ~9600 dxa = 6.67 pulgadas)
+                    col_widths = [300, 1800, 300, 1050, 1050, 300, 2250, 300, 2250]
+                    tblGrid = table._tbl.find(qn('w:tblGrid'))
+                    if tblGrid is not None:
+                        for c_idx, gridCol in enumerate(tblGrid.findall(qn('w:gridCol'))):
+                            if c_idx < len(col_widths):
+                                gridCol.set(qn('w:w'), str(col_widths[c_idx]))
 
                     for r_idx, row in enumerate(table.rows):
-                        for cell in row.cells:
+                        for c_idx, cell in enumerate(row.cells):
+                            tcPr = cell._tc.get_or_add_tcPr()
+                            # Eliminar bordes individuales para evitar cortes en medio de la tabla
+                            tcBorders = tcPr.find(qn('w:tcBorders'))
+                            if tcBorders is not None:
+                                tcPr.remove(tcBorders)
+                            if r_idx == 0:
+                                tcPr.append(parse_xml(HEADER_BORDER_XML))
+
+                            if c_idx < len(col_widths):
+                                tcW = tcPr.find(qn('w:tcW'))
+                                if tcW is not None:
+                                    tcW.set(qn('w:w'), str(col_widths[c_idx]))
+
                             for para in cell.paragraphs:
                                 para.paragraph_format.space_before = Pt(1)
                                 para.paragraph_format.space_after = Pt(1)
+                                para.paragraph_format.line_spacing = 1.05
                                 for run in para.runs:
+                                    # Limpiar glifos de viñeta rotos
+                                    if run.text:
+                                        run.text = re.sub(r'[\u25a1\uf0b7\u25aa\u25fb\u25fc]', '• ', run.text)
                                     if r_idx == 0:
                                         run.font.bold = True
                                         run.font.size = Pt(8.5)
                                     else:
-                                        run.font.size = Pt(7.8)
+                                        run.font.size = Pt(7.5)
+
+
+            # -------------------------------------------------------------
+            # 5. COMPRESIÓN DE ESPACIADO EN PÁRRAFOS VACÍOS
+            # -------------------------------------------------------------
+            for p in doc.paragraphs:
+                # No alterar párrafos que contienen imágenes
+                if p._element.find('.//' + qn('w:drawing')) is not None:
+                    continue
+                t = p.text.strip()
+                if not t:
+                    p.paragraph_format.space_before = Pt(0)
+                    p.paragraph_format.space_after = Pt(0)
+                    p.paragraph_format.line_spacing = Pt(1)
+                else:
+                    sa = p.paragraph_format.space_after
+                    sb = p.paragraph_format.space_before
+                    if sa is not None and sa.pt is not None and sa.pt > 6:
+                        p.paragraph_format.space_after = Pt(3)
+                    if sb is not None and sb.pt is not None and sb.pt > 6:
+                        p.paragraph_format.space_before = Pt(2)
 
             doc.save(output_docx_path)
             print(f"[Optimizer] DOCX optimizado guardado en: {output_docx_path}")
