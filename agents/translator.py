@@ -114,7 +114,7 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
         """
         Traduce un diccionario de elementos {id: texto} preservando las claves JSON exactas.
         Esto garantiza que cada párrafo, celda de tabla y título se reincorpore exactamente
-        en su contenedor original.
+        en su contenedor original sin omitir ningún elemento.
         """
         if not text_dict:
             return {}
@@ -127,11 +127,12 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
             f"Eres un traductor científico experto. Traduce todos los valores de este diccionario JSON del {source_language} al {target_language}.\n\n"
             f"REGLAS CRÍTICAS:\n"
             f"1. Conserva EXACTAMENTE las mismas claves JSON.\n"
-            f"2. Traduce ÚNICAMENTE los valores al {target_language} con precisión académica y tono formal.\n"
-            f"3. Glosario de términos:\n{glossary_str}\n"
-            f"4. Si un valor es 'snowballing', tradúcelo como 'búsqueda en bola de nieve' o 'muestreo en bola de nieve'.\n"
-            f"5. Conserva intactos números de referencia [1], URLs (https://...), DOIs (doi:10.xxx) y marcas registradas (Siemens, Medtronic, etc.).\n"
-            f"6. Responde ÚNICAMENTE con un JSON válido parseable. Sin explicaciones ni bloques markdown ```json.\n\n"
+            f"2. Traduce TODOS los valores al {target_language} con precisión académica, manteniendo viñetas (•) y terminología formal.\n"
+            f"3. NUNCA dejes texto en {source_language}. Traduce absolutamente todas las oraciones y celdas de tabla.\n"
+            f"4. Glosario de términos:\n{glossary_str}\n"
+            f"5. Si un valor es 'snowballing', tradúcelo como 'búsqueda en bola de nieve' o 'muestreo en bola de nieve'.\n"
+            f"6. Conserva intactos números de referencia [1], URLs (https://...), DOIs (doi:10.xxx) y marcas registradas (Siemens, Medtronic, etc.).\n"
+            f"7. Responde ÚNICAMENTE con un JSON válido parseable. Sin explicaciones ni bloques markdown ```json.\n\n"
             f"JSON A TRADUCIR:\n"
             + json.dumps(text_dict, ensure_ascii=False, indent=2)
         )
@@ -144,45 +145,82 @@ Responde SOLO con el texto traducido. Sin explicaciones ni notas."""),
         for attempt in range(1, 4):
             try:
                 response = chain.invoke({"prompt": prompt_str})
-                break
+                if response and response.strip():
+                    break
             except Exception as primary_err:
-                print(f"[Translator] Intento {attempt} con {self.model_name} falló: {primary_err}")
+                print(f"[Translator] Intento {attempt} en translate_structured_dict falló: {primary_err}")
                 if self.fallback_llm is not None and self._is_quota_exhausted(primary_err):
                     print(f"[Translator] Probando modelo de respaldo {self.fallback_model_name}...")
                     try:
                         fallback_chain = dict_prompt | self.fallback_llm | StrOutputParser()
                         response = fallback_chain.invoke({"prompt": prompt_str})
-                        break
+                        if response and response.strip():
+                            break
                     except Exception as fb_err:
-                        print(f"[Translator] Intento con respaldo {self.fallback_model_name} falló: {fb_err}")
+                        print(f"[Translator] Intento con respaldo falló: {fb_err}")
                 
                 if attempt < 3:
-                    sleep_s = 5 * attempt
-                    print(f"[Translator] Esperando {sleep_s}s antes de reintentar...")
-                    time.sleep(sleep_s)
-                else:
-                    return text_dict
+                    time.sleep(3 * attempt)
 
-        # Parsear JSON de respuesta
+        # Parsear JSON de respuesta con múltiples estrategias de recuperación
         cleaned_resp = str(response or "").strip()
-        cleaned_resp = re.sub(r'^```json\s*', '', cleaned_resp)
+        cleaned_resp = re.sub(r'^```json\s*', '', cleaned_resp, flags=re.IGNORECASE)
         cleaned_resp = re.sub(r'^```\s*', '', cleaned_resp)
         cleaned_resp = re.sub(r'\s*```$', '', cleaned_resp)
 
-        translated_map = None
+        translated_map = {}
         try:
             translated_map = json.loads(cleaned_resp)
         except Exception:
+            # Estrategia 2: Extraer bloque JSON con regex
             json_match = re.search(r'\{.*\}', cleaned_resp, re.DOTALL)
             if json_match:
                 try:
                     translated_map = json.loads(json_match.group(0))
                 except Exception:
-                    pass
+                    # Estrategia 3: Parsear pares clave-valor individuales con regex
+                    pairs = re.findall(r'"(elem_\d+)":\s*"((?:[^"\\]|\\.)*)"', cleaned_resp)
+                    for k, v in pairs:
+                        try:
+                            translated_map[k] = v.encode().decode('unicode_escape')
+                        except Exception:
+                            translated_map[k] = v
 
-        if isinstance(translated_map, dict):
-            return {str(k): str(v) for k, v in translated_map.items()}
-        return text_dict
+        if not isinstance(translated_map, dict):
+            translated_map = {}
+
+        result_dict = {}
+        # Verificar cada elemento y traducir individualmente si faltó o quedó en idioma original
+        for key, orig_val in text_dict.items():
+            trans_val = str(translated_map.get(key, "")).strip()
+            
+            # Si no se tradujo, quedó vacío o parece seguir en el idioma de origen
+            needs_fallback = (
+                not trans_val or
+                (len(orig_val) > 20 and self.looks_untranslated(trans_val, source_language, target_language))
+            )
+            
+            if needs_fallback:
+                try:
+                    print(f"[Translator] Fallback individual para {key} ({len(orig_val)} chars)...")
+                    individual_trans = self.translate_text(
+                        text=orig_val,
+                        source_language=source_language,
+                        target_language=target_language,
+                        context=context,
+                        glossary=glossary
+                    )
+                    if individual_trans and individual_trans.strip():
+                        result_dict[key] = individual_trans.strip()
+                    else:
+                        result_dict[key] = trans_val if trans_val else orig_val
+                except Exception as e:
+                    print(f"[Translator] Error en fallback individual para {key}: {e}")
+                    result_dict[key] = trans_val if trans_val else orig_val
+            else:
+                result_dict[key] = trans_val
+
+        return result_dict
 
     def translate_text(self, text: str, source_language: str = "es", 
                       target_language: str = "en", context: str = "",

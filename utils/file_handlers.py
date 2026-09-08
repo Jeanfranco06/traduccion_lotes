@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import subprocess
+import time
 import pandas as pd
 import tempfile
 from typing import Dict, Any, Optional
@@ -60,6 +61,17 @@ class FileHandler:
                 pass
 
     @staticmethod
+    def _kill_word_processes():
+        """Mata todos los procesos WINWORD.EXE colgados."""
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", "WINWORD.EXE"],
+                capture_output=True, timeout=5, check=False
+            )
+        except Exception:
+            pass
+
+    @staticmethod
     def _convert_pdf_to_docx_with_word(pdf_path: str, docx_path: str) -> bool:
         """
         Usa Microsoft Word para reflujo de PDF a DOCX.
@@ -68,13 +80,15 @@ class FileHandler:
         try:
             abs_pdf = os.path.abspath(pdf_path)
             abs_docx = os.path.abspath(docx_path)
-            print("[PDF→DOCX] Intentando conversión con Word (timeout: 25s)...")
+
+            # Matar procesos Word colgados antes de intentar
+            FileHandler._kill_word_processes()
+            time.sleep(1)
+
+            print("[PDF→DOCX] Intentando conversión con Word (timeout: 10s)...")
 
             helper_script = """
-import os
-import sys
-import pythoncom
-import win32com.client
+import os, sys, pythoncom, win32com.client
 
 pdf_path = sys.argv[1]
 docx_path = sys.argv[2]
@@ -82,46 +96,53 @@ pythoncom.CoInitialize()
 word = None
 doc = None
 try:
-    word = win32com.client.DispatchEx('Word.Application')
+    word = win32com.client.DispatchEx("Word.Application")
     word.Visible = False
     word.DisplayAlerts = 0
-    doc = word.Documents.Open(pdf_path, ConfirmConversions=False, ReadOnly=True)
+    doc = word.Documents.Open(pdf_path, ConfirmConversions=False, ReadOnly=True,
+                              AddToRecentFiles=False, Visible=False)
     doc.SaveAs2(docx_path, FileFormat=16)
+except Exception as e:
+    print(f"WORD_ERROR: {e}", file=sys.stderr)
+    sys.exit(1)
 finally:
     if doc:
-        try:
-            doc.Close(False)
-        except Exception:
-            pass
+        try: doc.Close(False)
+        except: pass
     if word:
-        try:
-            word.Quit()
-        except Exception:
-            pass
-    try:
-        pythoncom.CoUninitialize()
-    except Exception:
-        pass
+        try: word.Quit()
+        except: pass
+    try: pythoncom.CoUninitialize()
+    except: pass
 """
+            try:
+                completed = subprocess.run(
+                    [sys.executable, "-c", helper_script, abs_pdf, abs_docx],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False
+                )
+            except subprocess.TimeoutExpired:
+                FileHandler._kill_word_processes()
+                print("[PDF→DOCX] Word se colgó; usando pdf2docx.")
+                return False
 
-            completed = subprocess.run(
-                [sys.executable, "-c", helper_script, abs_pdf, abs_docx],
-                capture_output=True,
-                text=True,
-                timeout=25,
-                check=False
-            )
             if completed.returncode != 0:
                 stderr = (completed.stderr or completed.stdout or "").strip()
-                print(f"[PDF→DOCX] Word devolvió error: {stderr[:300]}")
+                print(f"[PDF→DOCX] Word falló: {stderr[:200]}")
+                FileHandler._kill_word_processes()
+                return False
+
+            if not os.path.exists(abs_docx) or os.path.getsize(abs_docx) == 0:
+                print("[PDF→DOCX] Word no generó el DOCX.")
+                FileHandler._kill_word_processes()
                 return False
 
             return FileHandler._docx_has_meaningful_content(abs_docx)
-        except subprocess.TimeoutExpired:
-            print("[PDF→DOCX] Word tardó demasiado; se omite y se usa fallback.")
-            return False
         except Exception as e:
-            print(f"[PDF→DOCX] Conversión con Word no disponible o falló: {e}")
+            print(f"[PDF→DOCX] Word no disponible: {e}")
+            FileHandler._kill_word_processes()
             return False
     
     @staticmethod
@@ -979,13 +1000,14 @@ finally:
                 doc.save(output_docx_path)
                 return True
 
-            # Crear lotes dinámicos basados en límite de caracteres (~2500 chars) o max 20 elementos
+            # Crear lotes dinámicos conservadores (~1800 chars o max 12 elementos)
+            # para asegurar que el modelo no trunque JSON ni omita celdas complejas de tablas
             batches = []
             cur_batch = []
             cur_chars = 0
             for item in to_translate:
                 t_len = len(item[1])
-                if cur_batch and (len(cur_batch) >= 20 or cur_chars + t_len > 2500):
+                if cur_batch and (len(cur_batch) >= 12 or cur_chars + t_len > 1800):
                     batches.append(cur_batch)
                     cur_batch = []
                     cur_chars = 0
@@ -1024,6 +1046,26 @@ finally:
                 for idx, (p_obj, orig_text) in enumerate(batch):
                     key = f"elem_{idx}"
                     translated_val = translated_map.get(key, orig_text) if translated_map else orig_text
+                    
+                    # Verificación extra: si un elemento significativo sigue en idioma origen o vacío, re-traducir directamente
+                    if (
+                        not translated_val or
+                        (len(orig_text) > 20 and translator_agent.looks_untranslated(translated_val, source_language, target_language))
+                    ):
+                        try:
+                            print(f"[Translator] Re-traducción directa de seguridad para elemento {key}...")
+                            direct_trans = translator_agent.translate_text(
+                                text=orig_text,
+                                source_language=source_language,
+                                target_language=target_language,
+                                context=context,
+                                glossary=glossary
+                            )
+                            if direct_trans and direct_trans.strip():
+                                translated_val = direct_trans.strip()
+                        except Exception as dt_err:
+                            print(f"[Translator] Error en re-traducción directa: {dt_err}")
+
                     translated_val = FileHandler._sanitize_xml_text(translated_val)
                     if translated_val:
                         if p_obj.runs:
@@ -1035,7 +1077,7 @@ finally:
 
                 # Pequeña pausa entre llamadas para proteger cuota de API
                 if b_idx < total_batches - 1:
-                    time.sleep(2)
+                    time.sleep(1.5)
 
             doc.save(output_docx_path)
             print(f"[Translator] DOCX traducido exitosamente guardado en: {output_docx_path}")
